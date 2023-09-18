@@ -1,0 +1,3 @@
+fgg -> gf
+fg -> f
+gfg -> ff
