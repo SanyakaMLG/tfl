@@ -334,6 +334,10 @@ Node<std::pair<int, std::string >> *ACI(Node<std::pair<int, std::string >> *root
     return root;
 }
 
+Node<std::pair<int, std::string>> *D(std::string regex, char var) {
+    return ACI(derivative(buildTree(infixToPostfix(get_lexems(regex))), var));
+}
+
 int main() {
     std::string le = "(ab#ac)((ab#c)*)|k";
     std::cout << le << std::endl;
