@@ -3,4 +3,4 @@ project(lab2)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(lab2 Brzozowski_derivative.cpp)
+add_executable(lab2 main.cpp)

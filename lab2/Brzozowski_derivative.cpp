@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <set>
 #include "BinaryTree.hpp"
+#include "BrzozowskiAutomaton.hpp"
 
 const int EMPTY(-1);
 const int EPS(0);
@@ -414,22 +415,23 @@ std::string sortRegex(Node<std::pair<int, std::string>> *root) {
 }
 
 
-int main() {
-    std::string test1 = "abc(d|z#c|a)";
-    std::cout << test1 << std::endl;
-    std::string test2 = "abc(z#c|a|d)";
-    std::cout << test2 << std::endl;
-    auto lex = get_lexems(test1);
-    auto ans = infixToPostfix(lex);
-    auto *t = buildTree(ans);
-    printBT(t);
-    auto *d = derivative(t, 'a');
-    auto *optim = ACI(d);
-    printBT(optim);
-    auto reg1 = sortRegex(buildTree(infixToPostfix(get_lexems(test1))));
-    auto reg2 =sortRegex(buildTree(infixToPostfix(get_lexems(test2))));
-    std::cout<<reg1<<std::endl;
-    std::cout<<reg2<<std::endl;
-    return 0;
-}
+//int main() {
+//    auto atmt = BrzozowskiAutomaton("(a*|b*)#a*");
+//    std::string test1 = "abc(d|z#c|a)";
+//    std::cout << test1 << std::endl;
+//    std::string test2 = "abc(z#c|a|d)";
+//    std::cout << test2 << std::endl;
+//    auto lex = get_lexems(test1);
+//    auto ans = infixToPostfix(lex);
+//    auto *t = buildTree(ans);
+//    printBT(t);
+//    auto *d = derivative(t, 'a');
+//    auto *optim = ACI(d);
+//    printBT(optim);
+//    auto reg1 = sortRegex(buildTree(infixToPostfix(get_lexems(test1))));
+//    auto reg2 =sortRegex(buildTree(infixToPostfix(get_lexems(test2))));
+//    std::cout<<reg1<<std::endl;
+//    std::cout<<reg2<<std::endl;
+//    return 0;
+//}
 // (((c|z)|d)|a) d,z,c,a пусть d,z,c,a отсортированы внутри,
