@@ -399,12 +399,16 @@ std::string sortRegex(Node *root) {
 }
 
 Regex Regex::der(char let) {
-    auto t = derivative(root, let);
+    Regex ans;
+    ans.root = cloneBinaryTree(root);
+    auto t = derivative(ans.root, let);
     while (hasEmpty(t)) {
         t = ACI(t);
     }
     std::string r = sortRegex(t);
-    return {r, t};
+    ans.root = t;
+    ans.reg = r;
+    return ans;
 
 }
 
@@ -426,5 +430,9 @@ std::string Regex::get() {
 
 Node *Regex::getTree() {
     return root;
+}
+
+Regex::Regex() {
+
 }
 

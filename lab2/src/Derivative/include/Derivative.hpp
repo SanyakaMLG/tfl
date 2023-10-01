@@ -7,6 +7,8 @@
 #include "Node.hpp"
 class Regex{
 public:
+    Regex();
+
     explicit Regex(std::string s);
     explicit Regex(Node * root);
     Regex(std::string s, Node* root);
