@@ -1,6 +1,8 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include <unordered_set>
+#include <set>
 #include "BinaryTree.hpp"
 
 const int EMPTY(-1);
@@ -334,20 +336,100 @@ Node<std::pair<int, std::string >> *ACI(Node<std::pair<int, std::string >> *root
     return root;
 }
 
-Node<std::pair<int, std::string>> *D(std::string regex, char var) {
-    return ACI(derivative(buildTree(infixToPostfix(get_lexems(regex))), var));
+bool hasEmpty(Node<std::pair<int, std::string>> *root) {
+    if (root->data.first == WORD || root->data.first == EPS) {
+        return false;
+    }
+    if (root->data.first == EMPTY) {
+        return true;
+    }
+    return hasEmpty(root->left) || hasEmpty(root->right);
 }
 
+Node<std::pair<int, std::string>> *D(std::string regex, char var) {
+    auto t = derivative(buildTree(infixToPostfix(get_lexems(regex))), var);
+    while (hasEmpty(t)) {
+        t = ACI(t);
+    }
+    return t;
+}
+
+std::string buildString(const std::set<std::string> &set, int type) {
+    std::string ans = "(";
+    for (const auto &elem: set) {
+        ans += elem;
+        ans += reverse[type];
+    }
+    ans = ans.substr(0, ans.length() - 1);
+    return ans + ")";
+}
+
+std::string buildKlini(const std::set<std::string> &set) {
+    return "(" + *set.begin() + ")*";
+}
+
+std::set<std::string> innerSortRegex(Node<std::pair<int, std::string>> *cur, Node<std::pair<int, std::string>> *parent) {
+    switch (cur->data.first) {
+        case WORD: {
+            return std::set<std::string>{cur->data.second};
+        }
+        case ALTERNATIVE: {
+            auto l = innerSortRegex(cur->left, cur);
+            auto r = innerSortRegex(cur->right, cur);
+            l.merge(r);
+            if (parent && parent->data.first == ALTERNATIVE) {
+                return l;
+            } else {
+                return std::set<std::string>{buildString(l, ALTERNATIVE)};
+            }
+        }
+        case SHUFFLE: {
+            auto l = innerSortRegex(cur->left, cur);
+            auto r = innerSortRegex(cur->right, cur);
+            l.merge(r);
+            if (parent && parent->data.first == SHUFFLE) {
+                return l;
+            } else {
+                return std::set<std::string>{buildString(l, SHUFFLE)};
+            }
+        }
+        case CONCAT: {
+            auto l = innerSortRegex(cur->left, cur);
+            auto r = innerSortRegex(cur->right, cur);
+            std::string ls = *l.begin();
+            std::string rs = *r.begin();
+            return std::set<std::string >{ls + rs};
+        }
+        case KLINI: {
+            auto l = innerSortRegex(cur->left, cur);
+            return std::set<std::string>{buildKlini(l)};
+        }
+        default:
+            return std::set<std::string>{""};
+    }
+}
+
+std::string sortRegex(Node<std::pair<int, std::string>> *root) {
+    return *innerSortRegex(root, nullptr).begin();
+}
+
+
 int main() {
-    std::string le = "(ab#ac)((ab#c)*)|k";
-    std::cout << le << std::endl;
-    auto lex = get_lexems(le);
+    std::string test1 = "abc(d|z#c|a)";
+    std::cout << test1 << std::endl;
+    std::string test2 = "abc(z#c|a|d)";
+    std::cout << test2 << std::endl;
+    auto lex = get_lexems(test1);
     auto ans = infixToPostfix(lex);
     auto *t = buildTree(ans);
     printBT(t);
     auto *d = derivative(t, 'a');
-    printBT(d);
     auto *optim = ACI(d);
     printBT(optim);
+    auto reg1 = sortRegex(buildTree(infixToPostfix(get_lexems(test1))));
+    auto reg2 =sortRegex(buildTree(infixToPostfix(get_lexems(test2))));
+    std::cout<<reg1<<std::endl;
+    std::cout<<reg2<<std::endl;
     return 0;
 }
+// (((c|z)|d)|a) d,z,c,a пусть d,z,c,a отсортированы внутри,
