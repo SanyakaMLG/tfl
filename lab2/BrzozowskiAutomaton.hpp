@@ -5,6 +5,7 @@
 #ifndef LAB2_BRZOZOWSKIAUTOMATON_HPP
 #define LAB2_BRZOZOWSKIAUTOMATON_HPP
 
+#include <utility>
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -17,7 +18,7 @@ class BrzozowskiAutomaton {
 private:
     std::unordered_map<std::string, int> map; // mapping regex with automation state
     std::vector<std::pair<std::pair<int, char>, int>>  transitions;
-    int initialState;
+    int initialState{};
     std::string initialRegex;
     std::vector<int> finalStates;
     std::unordered_map<std::string, bool> completeStates;
@@ -27,7 +28,7 @@ private:
     void addDerivativeBySymbol(Node<std::pair<int, std::string >> *, char, int&, int);
     void addDerivativeByAlphabet(std::string, int&);
 public:
-    BrzozowskiAutomaton(std::string);
+    explicit BrzozowskiAutomaton(std::string str):initialRegex(std::move(str)){};
     void addTransition(std::string regexFrom, std::string regexTo, char c);
     std::string convertToRegex();
 };
