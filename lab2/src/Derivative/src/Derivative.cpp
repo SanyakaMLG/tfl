@@ -1,10 +1,6 @@
-#include <iostream>
-#include <regex>
-#include <string>
-#include <unordered_set>
-#include <set>
-#include "BinaryTree.hpp"
-#include "BrzozowskiAutomaton.hpp"
+#include "Derivative.hpp"
+
+#include <utility>
 
 const int EMPTY(-1);
 const int EPS(0);
@@ -15,15 +11,6 @@ const int ALTERNATIVE(4);
 const int SHUFFLE(5);
 const int CONCAT(6);
 const int KLINI(7);
-
-int count_slash(const std::string &expr, int index) {
-    int ans = 0;
-    while (index >= 0 && expr[index] == '\\') {
-        ans++;
-        index--;
-    }
-    return ans;
-}
 
 
 std::unordered_map<std::string, int> map = {{"word", WORD},
@@ -44,28 +31,19 @@ std::unordered_map<int, std::string> reverse = {{OPEN_BRACKET,  "("},
                                                 {EMPTY,         "∅"},
                                                 {SHUFFLE,       "#"}};
 
-void printBT(const std::string &prefix, const Node<std::pair<int, std::string>> *node, bool isLeft) {
-    if (node != nullptr) {
-        std::cout << prefix;
 
-        std::cout << (isLeft ? "├──" : "└──");
 
-        // print the value of the node
-        std::cout << node->data.second << std::endl;
-
-        // enter the next tree level - left and right branch
-        printBT(prefix + (isLeft ? "│   " : "    "), node->left, true);
-        printBT(prefix + (isLeft ? "│   " : "    "), node->right, false);
+int count_slash(const std::string &expr, int index) {
+    int ans = 0;
+    while (index >= 0 && expr[index] == '\\') {
+        ans++;
+        index--;
     }
+    return ans;
 }
 
-void printBT(const Node<std::pair<int, std::string>> *node) {
-    printBT("", node, false);
-}
-
-
-std::vector<std::pair<int, std::string>> get_lexems(std::string &str) {
-    std::vector<std::pair<int, std::string>> ans;
+std::vector<std::pair<int,std::string>> get_lexems(std::string &str) {
+    std::vector<std::pair<int,std::string>> ans;
     std::string acc;
     for (int i = 0; i < str.length(); i++) {
         while (i < str.length() &&
@@ -93,8 +71,9 @@ std::vector<std::pair<int, std::string>> get_lexems(std::string &str) {
     return ans;
 }
 
-std::vector<std::pair<int, std::string>> infixToPostfix(const std::vector<std::pair<int, std::string>> &lexems) {
-    std::vector<std::pair<int, std::string>> ans;
+
+std::vector<std::pair<int,std::string>> infixToPostfix(const std::vector<std::pair<int,std::string>> &lexems) {
+    std::vector<std::pair<int,std::string>> ans;
     std::stack<int> stack;
     for (const auto &lex: lexems) {
         switch (lex.first) {
@@ -164,11 +143,11 @@ std::vector<std::pair<int, std::string>> infixToPostfix(const std::vector<std::p
     return ans;
 }
 
-Node<std::pair<int, std::string >> *buildTree(const std::vector<std::pair<int, std::string>> &lexems) {
-    std::stack<Node<std::pair<int, std::string >> *> nodes;
-    for (auto lex: lexems) {
+Node *buildTree(const std::vector<std::pair<int, std::string>> &lexems) {
+    std::stack<Node*> nodes;
+    for (const auto &lex: lexems) {
         if (lex.first == WORD) {
-            auto *node = new Node<std::pair<int, std::string>>(lex);
+            auto *node = new Node(lex);
             nodes.push(node);
         }
         if (lex.first == CONCAT || lex.first == SHUFFLE || lex.first == ALTERNATIVE) {
@@ -176,20 +155,20 @@ Node<std::pair<int, std::string >> *buildTree(const std::vector<std::pair<int, s
             nodes.pop();
             auto *l = nodes.top();
             nodes.pop();
-            auto *node = new Node<std::pair<int, std::string>>(lex, l, r);
+            auto *node = new Node(lex, l, r);
             nodes.push(node);
         }
         if (lex.first == KLINI) {
             auto *l = nodes.top();
             nodes.pop();
-            auto *node = new Node<std::pair<int, std::string >>(lex, l, nullptr);
+            auto *node = new Node(lex, l, nullptr);
             nodes.push(node);
         }
     }
     return nodes.top();
 }
 
-bool containsEPS(Node<std::pair<int, std::string >> *root) {
+bool containsEPS(Node *root) {
     if (!root) {
         return false;
     }
@@ -208,7 +187,7 @@ bool containsEPS(Node<std::pair<int, std::string >> *root) {
     return false;
 }
 
-Node<std::pair<int, std::string >> *derivative(Node<std::pair<int, std::string >> *root, char var) {
+Node *derivative(Node *root, char var) {
     if (root->data.first == WORD) {
         if (root->data.second[0] == var) {
             if (root->data.second.length() > 1) {
@@ -233,14 +212,14 @@ Node<std::pair<int, std::string >> *derivative(Node<std::pair<int, std::string >
     } else if (root->data.first == CONCAT) {
         root->data.first = ALTERNATIVE;
         root->data.second = reverse[ALTERNATIVE];
-        Node<std::pair<int, std::string >> *cur = cloneBinaryTree(root->left);
-        root->left = new Node<std::pair<int, std::string >>(std::pair(CONCAT, reverse[CONCAT]),
+        Node*cur = cloneBinaryTree(root->left);
+        root->left = new Node(std::pair(CONCAT, reverse[CONCAT]),
                                                             derivative(root->left, var), root->right);
         std::cout << std::endl;
         if (containsEPS(cur)) {
             root->right = derivative(root->right, var);
         } else {
-            root->right = new Node<std::pair<int, std::string >>(std::pair(EMPTY, reverse[EMPTY]));
+            root->right = new Node(std::pair(EMPTY, reverse[EMPTY]));
         }
     } else if (root->data.first == KLINI) {
         root->data.first = CONCAT;
@@ -254,8 +233,8 @@ Node<std::pair<int, std::string >> *derivative(Node<std::pair<int, std::string >
         auto r = root->right;
         auto l_copy = cloneBinaryTree(l);
         auto r_copy = cloneBinaryTree(r);
-        root->left = new Node<std::pair<int, std::string >>(std::pair(SHUFFLE, reverse[SHUFFLE]));
-        root->right = new Node<std::pair<int, std::string >>(std::pair(SHUFFLE, reverse[SHUFFLE]));
+        root->left = new Node(std::pair(SHUFFLE, reverse[SHUFFLE]));
+        root->right = new Node(std::pair(SHUFFLE, reverse[SHUFFLE]));
         root->left->left = derivative(l, var);
         root->left->right = r_copy;
         root->right->left = l_copy;
@@ -264,7 +243,7 @@ Node<std::pair<int, std::string >> *derivative(Node<std::pair<int, std::string >
     return root;
 }
 
-Node<std::pair<int, std::string >> *ACI(Node<std::pair<int, std::string >> *root) {
+Node *ACI(Node *root) {
     switch (root->data.first) {
         case ALTERNATIVE:
             if (root->left->data.first == EMPTY) {
@@ -300,7 +279,7 @@ Node<std::pair<int, std::string >> *ACI(Node<std::pair<int, std::string >> *root
             } else if (root->left->data.first == EMPTY || root->right->data.first == EMPTY) {
                 delete root->left;
                 delete root->right;
-                root = new Node<std::pair<int, std::string>>(std::pair(EMPTY, reverse[EMPTY]));
+                root = new Node(std::pair(EMPTY, reverse[EMPTY]));
             } else {
                 root->left = ACI(root->left);
                 root->right = ACI(root->right);
@@ -310,7 +289,7 @@ Node<std::pair<int, std::string >> *ACI(Node<std::pair<int, std::string >> *root
             if (root->left->data.first == EPS || root->left->data.first == EMPTY) {
                 int t = root->left->data.first;
                 delete root->left;
-                root = new Node<std::pair<int, std::string>>(std::pair(t, reverse[t]));
+                root = new Node(std::pair(t, reverse[t]));
             } else {
                 root->left = ACI(root->left);
             }
@@ -327,7 +306,7 @@ Node<std::pair<int, std::string >> *ACI(Node<std::pair<int, std::string >> *root
             } else if (root->left->data.first == EMPTY || root->right->data.first == EMPTY) {
                 delete root->left;
                 delete root->right;
-                root = new Node<std::pair<int, std::string>>(std::pair(EMPTY, reverse[EMPTY]));
+                root = new Node(std::pair(EMPTY, reverse[EMPTY]));
             } else {
                 root->left = ACI(root->left);
                 root->right = ACI(root->right);
@@ -337,7 +316,7 @@ Node<std::pair<int, std::string >> *ACI(Node<std::pair<int, std::string >> *root
     return root;
 }
 
-bool hasEmpty(Node<std::pair<int, std::string>> *root) {
+bool hasEmpty(Node *root) {
     if (root->data.first == WORD || root->data.first == EPS) {
         return false;
     }
@@ -347,7 +326,7 @@ bool hasEmpty(Node<std::pair<int, std::string>> *root) {
     return hasEmpty(root->left) || hasEmpty(root->right);
 }
 
-Node<std::pair<int, std::string>> *D(std::string regex, char var) {
+Node *D(std::string regex, char var) {
     auto t = derivative(buildTree(infixToPostfix(get_lexems(regex))), var);
     while (hasEmpty(t)) {
         t = ACI(t);
@@ -369,7 +348,8 @@ std::string buildKlini(const std::set<std::string> &set) {
     return "(" + *set.begin() + ")*";
 }
 
-std::set<std::string> innerSortRegex(Node<std::pair<int, std::string>> *cur, Node<std::pair<int, std::string>> *parent) {
+std::set<std::string>
+innerSortRegex(Node *cur, Node *parent) {
     switch (cur->data.first) {
         case WORD: {
             return std::set<std::string>{cur->data.second};
@@ -399,7 +379,7 @@ std::set<std::string> innerSortRegex(Node<std::pair<int, std::string>> *cur, Nod
             auto r = innerSortRegex(cur->right, cur);
             std::string ls = *l.begin();
             std::string rs = *r.begin();
-            return std::set<std::string >{ls + rs};
+            return std::set<std::string>{ls + rs};
         }
         case KLINI: {
             auto l = innerSortRegex(cur->left, cur);
@@ -410,28 +390,37 @@ std::set<std::string> innerSortRegex(Node<std::pair<int, std::string>> *cur, Nod
     }
 }
 
-std::string sortRegex(Node<std::pair<int, std::string>> *root) {
+std::string sortRegex(Node *root) {
     return *innerSortRegex(root, nullptr).begin();
 }
 
+Regex Regex::der(char let) {
+    auto t = derivative(root, let);
+    while (hasEmpty(t)) {
+        t = ACI(t);
+    }
+    std::string r = sortRegex(t);
+    return {r, t};
 
-//int main() {
-//    auto atmt = BrzozowskiAutomaton("(a*|b*)#a*");
-//    std::string test1 = "abc(d|z#c|a)";
-//    std::cout << test1 << std::endl;
-//    std::string test2 = "abc(z#c|a|d)";
-//    std::cout << test2 << std::endl;
-//    auto lex = get_lexems(test1);
-//    auto ans = infixToPostfix(lex);
-//    auto *t = buildTree(ans);
-//    printBT(t);
-//    auto *d = derivative(t, 'a');
-//    auto *optim = ACI(d);
-//    printBT(optim);
-//    auto reg1 = sortRegex(buildTree(infixToPostfix(get_lexems(test1))));
-//    auto reg2 =sortRegex(buildTree(infixToPostfix(get_lexems(test2))));
-//    std::cout<<reg1<<std::endl;
-//    std::cout<<reg2<<std::endl;
-//    return 0;
-//}
-// (((c|z)|d)|a) d,z,c,a пусть d,z,c,a отсортированы внутри,
+}
+
+Regex::Regex(std::string s) : reg(s) {
+    root = buildTree(infixToPostfix(get_lexems(reg)));
+}
+
+Regex::Regex(Node *root) : root(root) {
+    reg = sortRegex(root);
+}
+
+Regex::Regex(std::string s, Node *root) : root(root), reg(s) {
+
+}
+
+std::string Regex::get() {
+    return reg;
+}
+
+Node *Regex::getTree() {
+    return root;
+}
+

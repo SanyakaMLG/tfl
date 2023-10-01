@@ -1,7 +1,3 @@
-//
-// Created by aleks on 30.09.2023.
-//
-
 #ifndef LAB2_BRZOZOWSKIAUTOMATON_HPP
 #define LAB2_BRZOZOWSKIAUTOMATON_HPP
 
@@ -10,9 +6,9 @@
 #include <unordered_map>
 #include <string>
 #include <unordered_set>
-#include "BinaryTree.hpp"
+#include "Node.hpp"
 
-#endif //LAB2_BRZOZOWSKIAUTOMATON_HPP
+
 
 class BrzozowskiAutomaton {
 private:
@@ -25,10 +21,12 @@ private:
     std::unordered_set<char> alphabet;
     bool containsEPS(std::string);
     std::string findFirstUncompleted();
-    void addDerivativeBySymbol(Node<std::pair<int, std::string >> *, char, int&, int);
+    void addDerivativeBySymbol(Node *, char, int&, int);
     void addDerivativeByAlphabet(std::string, int&);
 public:
-    explicit BrzozowskiAutomaton(std::string str):initialRegex(std::move(str)){};
+    explicit BrzozowskiAutomaton(std::string str);
     void addTransition(std::string regexFrom, std::string regexTo, char c);
     std::string convertToRegex();
 };
+
+#endif //LAB2_BRZOZOWSKIAUTOMATON_HPP

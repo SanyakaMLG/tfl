@@ -1,10 +1,22 @@
-//
-// Created by aleks on 01.10.2023.
-//
+#ifndef LAB2_BRZOZOWSKIAUTOMATON_CPP
+#define LAB2_BRZOZOWSKIAUTOMATON_CPP
 
 #include <string>
 #include "BrzozowskiAutomaton.hpp"
-#include "Brzozowski_derivative.cpp"
+#include "Derivative.hpp"
+
+
+const int EMPTY(-1);
+const int EPS(0);
+const int WORD(1);
+const int OPEN_BRACKET(2);
+const int CLOSE_BRACKET(3);
+const int ALTERNATIVE(4);
+const int SHUFFLE(5);
+const int CONCAT(6);
+const int KLINI(7);
+
+
 
 std::string BrzozowskiAutomaton::findFirstUncompleted() {
     for (auto elem: completeStates) {
@@ -13,16 +25,14 @@ std::string BrzozowskiAutomaton::findFirstUncompleted() {
     return "";
 }
 
-void BrzozowskiAutomaton::addDerivativeBySymbol(Node<std::pair<int, std::string >> *t, char c,
+void BrzozowskiAutomaton::addDerivativeBySymbol(Node *t, char c,
                                                 int& curState, int oldState) {
-    auto newTree = derivative(t, c);
-    while (hasEmpty(newTree)) {
-        newTree = ACI(newTree);
-    }
-    std::string newRegex = sortRegex(newTree);
+    Regex regex(t);
+    auto newTree = regex.der( c);
+    std::string newRegex = newTree.get();
     if (!this->map.contains(newRegex)) {
         map[newRegex] = curState;
-        transitions.push_back(std::make_pair(std::make_pair(oldState, c), curState));
+        transitions.emplace_back(std::make_pair(oldState, c), curState);
         completeStates[newRegex] = false;
         if (containsEPS(newRegex)) finalStates.push_back(curState);
         curState++;
@@ -34,7 +44,7 @@ void BrzozowskiAutomaton::addDerivativeBySymbol(Node<std::pair<int, std::string 
 
 void BrzozowskiAutomaton::addDerivativeByAlphabet(std::string regex,
                                                   int &curState) {
-    auto tree = buildTree(infixToPostfix(get_lexems(regex)));
+    auto tree = Regex(regex).getTree();
     for (auto c: this->alphabet) {
         addDerivativeBySymbol(tree, c, curState, map[regex]);
     }
@@ -57,3 +67,9 @@ BrzozowskiAutomaton::BrzozowskiAutomaton(std::string initialRegex) {
         addDerivativeByAlphabet(regex, curState);
     }
 }
+
+bool BrzozowskiAutomaton::containsEPS(std::string) {
+    return false;
+}
+
+#endif
