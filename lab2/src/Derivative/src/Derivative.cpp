@@ -222,9 +222,10 @@ Node *derivative(Node *root, char var) {
             root->right = new Node(std::pair(EMPTY, reverse[EMPTY]));
         }
     } else if (root->data.first == KLINI) {
+        auto r = cloneBinaryTree(root);
         root->data.first = CONCAT;
         root->data.second = reverse[CONCAT];
-        root->right = root;
+        root->right = r;
         root->left = derivative(root->left, var);
     } else if (root->data.first == SHUFFLE) {
         root->data.first = ALTERNATIVE;
@@ -322,6 +323,9 @@ bool hasEmpty(Node *root) {
     }
     if (root->data.first == EMPTY) {
         return true;
+    }
+    if(root->data.first == KLINI){
+        return hasEmpty(root->left);
     }
     return hasEmpty(root->left) || hasEmpty(root->right);
 }
