@@ -23,6 +23,7 @@ private:
 
 Node* cloneBinaryTree(Node* root);
 
+bool containsEPS(Node* root);
 
 bool equalTrees(Node* l, Node* r);
 

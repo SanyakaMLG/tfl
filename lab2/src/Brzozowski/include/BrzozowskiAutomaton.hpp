@@ -11,7 +11,7 @@
 
 
 class BrzozowskiAutomaton {
-private:
+public:
     std::unordered_map<std::string, int> map; // mapping regex with automation state
     std::vector<std::pair<std::pair<int, char>, int>>  transitions;
     int initialState{};
@@ -19,7 +19,6 @@ private:
     std::vector<int> finalStates;
     std::unordered_map<std::string, bool> completeStates;
     std::unordered_set<char> alphabet;
-    bool containsEPS(std::string);
     std::string findFirstUncompleted();
     void addDerivativeBySymbol(Node *, char, int&, int);
     void addDerivativeByAlphabet(std::string, int&);

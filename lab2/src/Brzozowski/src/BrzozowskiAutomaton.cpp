@@ -34,7 +34,7 @@ void BrzozowskiAutomaton::addDerivativeBySymbol(Node *t, char c,
         map[newRegex] = curState;
         transitions.emplace_back(std::make_pair(oldState, c), curState);
         completeStates[newRegex] = false;
-        if (containsEPS(newRegex)) finalStates.push_back(curState);
+        if (containsEPS(regex.getTree())) finalStates.push_back(curState);
         curState++;
     } else {
         int toState = map[newRegex];
@@ -59,17 +59,14 @@ BrzozowskiAutomaton::BrzozowskiAutomaton(std::string initialRegex) {
     }
     initialState = 0;
     map[initialRegex] = 0;
-    if (containsEPS(initialRegex)) finalStates.push_back(0);
+    Regex initialRegex1 = Regex(initialRegex);
+    if (containsEPS(initialRegex1.getTree())) finalStates.push_back(0);
     completeStates[initialRegex] = false;
     int curState = 1;
     while (!findFirstUncompleted().empty()) {
         auto regex = findFirstUncompleted();
         addDerivativeByAlphabet(regex, curState);
     }
-}
-
-bool BrzozowskiAutomaton::containsEPS(std::string) {
-    return false;
 }
 
 #endif
