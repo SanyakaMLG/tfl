@@ -2,6 +2,7 @@
 
 #include <utility>
 
+#define DEBUG  0
 const int EMPTY(-1);
 const int EPS(0);
 const int WORD(1);
@@ -32,6 +33,7 @@ std::unordered_map<int, std::string> reverse = {{OPEN_BRACKET,  "("},
                                                 {SHUFFLE,       "#"}};
 
 
+std::string buildShuffle(std::pair<std::set<std::string>, std::vector<std::string>> pair);
 
 int count_slash(const std::string &expr, int index) {
     int ans = 0;
@@ -42,8 +44,8 @@ int count_slash(const std::string &expr, int index) {
     return ans;
 }
 
-std::vector<std::pair<int,std::string>> get_lexems(std::string &str) {
-    std::vector<std::pair<int,std::string>> ans;
+std::vector<std::pair<int, std::string>> get_lexems(std::string &str) {
+    std::vector<std::pair<int, std::string>> ans;
     std::string acc;
     for (int i = 0; i < str.length(); i++) {
         while (i < str.length() &&
@@ -72,8 +74,8 @@ std::vector<std::pair<int,std::string>> get_lexems(std::string &str) {
 }
 
 
-std::vector<std::pair<int,std::string>> infixToPostfix(const std::vector<std::pair<int,std::string>> &lexems) {
-    std::vector<std::pair<int,std::string>> ans;
+std::vector<std::pair<int, std::string>> infixToPostfix(const std::vector<std::pair<int, std::string>> &lexems) {
+    std::vector<std::pair<int, std::string>> ans;
     std::stack<int> stack;
     for (const auto &lex: lexems) {
         switch (lex.first) {
@@ -144,7 +146,7 @@ std::vector<std::pair<int,std::string>> infixToPostfix(const std::vector<std::pa
 }
 
 Node *buildTree(const std::vector<std::pair<int, std::string>> &lexems) {
-    std::stack<Node*> nodes;
+    std::stack<Node *> nodes;
     for (const auto &lex: lexems) {
         if (lex.first == WORD) {
             auto *node = new Node(lex);
@@ -212,9 +214,9 @@ Node *derivative(Node *root, char var) {
     } else if (root->data.first == CONCAT) {
         root->data.first = ALTERNATIVE;
         root->data.second = reverse[ALTERNATIVE];
-        Node*cur = cloneBinaryTree(root->left);
+        Node *cur = cloneBinaryTree(root->left);
         root->left = new Node(std::pair(CONCAT, reverse[CONCAT]),
-                                                            derivative(root->left, var), root->right);
+                              derivative(root->left, var), root->right);
         std::cout << std::endl;
         if (containsEPS(cur)) {
             root->right = derivative(root->right, var);
@@ -324,7 +326,7 @@ bool hasEmpty(Node *root) {
     if (root->data.first == EMPTY) {
         return true;
     }
-    if(root->data.first == KLINI){
+    if (root->data.first == KLINI) {
         return hasEmpty(root->left);
     }
     return hasEmpty(root->left) || hasEmpty(root->right);
@@ -352,50 +354,85 @@ std::string buildKlini(const std::set<std::string> &set) {
     return "(" + *set.begin() + ")*";
 }
 
-std::set<std::string>
+std::pair<std::set<std::string>, std::vector<std::string>>
 innerSortRegex(Node *cur, Node *parent) {
     switch (cur->data.first) {
         case WORD: {
-            return std::set<std::string>{cur->data.second};
+            return {std::set<std::string>{cur->data.second}, {}};
         }
         case ALTERNATIVE: {
             auto l = innerSortRegex(cur->left, cur);
             auto r = innerSortRegex(cur->right, cur);
-            l.merge(r);
+            l.second = {};
+            r.second = {};
+            l.first.merge(r.first);
             if (parent && parent->data.first == ALTERNATIVE) {
                 return l;
             } else {
-                return std::set<std::string>{buildString(l, ALTERNATIVE)};
+                return {std::set<std::string>{buildString(l.first, ALTERNATIVE)}, {}};
             }
         }
         case SHUFFLE: {
             auto l = innerSortRegex(cur->left, cur);
             auto r = innerSortRegex(cur->right, cur);
-            l.merge(r);
+            l.first.merge(r.first);
+            l.second.insert(l.second.end(), r.first.begin(), r.first.end());
             if (parent && parent->data.first == SHUFFLE) {
                 return l;
             } else {
-                return std::set<std::string>{buildString(l, SHUFFLE)};
+                return {std::set<std::string>{buildShuffle(l)}, {}};
             }
         }
         case CONCAT: {
             auto l = innerSortRegex(cur->left, cur);
             auto r = innerSortRegex(cur->right, cur);
-            std::string ls = *l.begin();
-            std::string rs = *r.begin();
-            return std::set<std::string>{ls + rs};
+            std::string ls = *l.first.begin();
+            std::string rs = *r.first.begin();
+            return {std::set<std::string>{ls + rs}, {}};
         }
         case KLINI: {
             auto l = innerSortRegex(cur->left, cur);
-            return std::set<std::string>{buildKlini(l)};
+            return {std::set<std::string>{buildKlini(l.first)}, {}};
         }
         default:
-            return std::set<std::string>{""};
+            return {std::set<std::string>{""}, {}};
     }
 }
 
+std::string buildShuffle(std::pair<std::set<std::string>, std::vector<std::string>> pair) {
+    std::vector<std::string> vec = pair.second;
+    vec.insert(vec.end(), pair.first.begin(), pair.first.end());
+    std::sort(vec.begin(), vec.end());
+    std::string ans = "(";
+    for (const auto &elem: vec) {
+        ans += elem;
+        ans += "#";
+    }
+    ans = ans.substr(0, ans.length() - 1);
+    return ans + ")";
+}
+
 std::string sortRegex(Node *root) {
-    return *innerSortRegex(root, nullptr).begin();
+    return *innerSortRegex(root, nullptr).first.begin();
+}
+
+void printBT(const std::string &prefix, const Node *node, bool isLeft) {
+    if (node != nullptr) {
+        std::cout << prefix;
+
+        std::cout << (isLeft ? "├──" : "└──");
+
+        // print the value of the node
+        std::cout << node->data.second << std::endl;
+
+        // enter the next tree level - left and right branch
+        printBT(prefix + (isLeft ? "│   " : "    "), node->left, true);
+        printBT(prefix + (isLeft ? "│   " : "    "), node->right, false);
+    }
+}
+
+void printBT(const Node *node) {
+    printBT("", node, false);
 }
 
 Regex Regex::der(char let) {
@@ -405,6 +442,9 @@ Regex Regex::der(char let) {
     while (hasEmpty(t)) {
         t = ACI(t);
     }
+#if DEBUG == 1
+    printBT(t);
+#endif
     std::string r = sortRegex(t);
     ans.root = t;
     ans.reg = r;
