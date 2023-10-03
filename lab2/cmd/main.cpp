@@ -1,7 +1,7 @@
 #include "BrzozowskiAutomaton.hpp"
 
 int main() {
-    BrzozowskiAutomaton automata = BrzozowskiAutomaton("(a*|b*)#a*");
+    BrzozowskiAutomaton automata = BrzozowskiAutomaton("a*e*ed#eb");
     automata.convertToRegex();
 //    for (auto el: automata.map) {
 //        std::cout << el.first << " " << el.second << "\n";

@@ -35,6 +35,12 @@ std::unordered_map<int, std::string> reverse = {{OPEN_BRACKET,  "("},
 
 std::string buildShuffle(std::pair<std::set<std::string>, std::vector<std::string>> pair);
 
+void printBT(const std::string &prefix, const Node *node, bool isLeft);
+
+void printBT(const Node *node) {
+    printBT("", node, false);
+}
+
 int count_slash(const std::string &expr, int index) {
     int ans = 0;
     while (index >= 0 && expr[index] == '\\') {
@@ -64,7 +70,8 @@ std::vector<std::pair<int, std::string>> get_lexems(std::string &str) {
             }
             std::string s(1, str[i]);
             ans.emplace_back(map[s], s);
-            if (i + 1 < str.length() && (str[i] == ')' || str[i] == '*') && (isalpha(str[i + 1]) || str[i + 1] == '(') &&
+            if (i + 1 < str.length() && (str[i] == ')' || str[i] == '*') &&
+                (isalpha(str[i + 1]) || str[i + 1] == '(') &&
                 ans.back().first != CONCAT) {
                 ans.emplace_back(map["·"], "·");
             }
@@ -146,6 +153,7 @@ std::vector<std::pair<int, std::string>> infixToPostfix(const std::vector<std::p
 }
 
 Node *buildTree(const std::vector<std::pair<int, std::string>> &lexems) {
+
     std::stack<Node *> nodes;
     for (const auto &lex: lexems) {
         if (lex.first == WORD) {
@@ -214,11 +222,12 @@ Node *derivative(Node *root, char var) {
     } else if (root->data.first == CONCAT) {
         root->data.first = ALTERNATIVE;
         root->data.second = reverse[ALTERNATIVE];
-        Node *cur = cloneBinaryTree(root->left);
+        Node *l = cloneBinaryTree(root->left);
+        Node *r = cloneBinaryTree(root->right);
         root->left = new Node(std::pair(CONCAT, reverse[CONCAT]),
-                              derivative(root->left, var), root->right);
+                              derivative(root->left, var), r);
         std::cout << std::endl;
-        if (containsEPS(cur)) {
+        if (containsEPS(l)) {
             root->right = derivative(root->right, var);
         } else {
             root->right = new Node(std::pair(EMPTY, reverse[EMPTY]));
@@ -332,13 +341,6 @@ bool hasEmpty(Node *root) {
     return hasEmpty(root->left) || hasEmpty(root->right);
 }
 
-Node *D(std::string regex, char var) {
-    auto t = derivative(buildTree(infixToPostfix(get_lexems(regex))), var);
-    while (hasEmpty(t)) {
-        t = ACI(t);
-    }
-    return t;
-}
 
 std::string buildString(const std::set<std::string> &set, int type) {
     std::string ans = "(";
@@ -358,6 +360,9 @@ std::pair<std::set<std::string>, std::vector<std::string>>
 innerSortRegex(Node *cur, Node *parent) {
     switch (cur->data.first) {
         case WORD: {
+            return {std::set<std::string>{cur->data.second}, {}};
+        }
+        case EPS: {
             return {std::set<std::string>{cur->data.second}, {}};
         }
         case ALTERNATIVE: {
@@ -402,7 +407,11 @@ innerSortRegex(Node *cur, Node *parent) {
 std::string buildShuffle(std::pair<std::set<std::string>, std::vector<std::string>> pair) {
     std::vector<std::string> vec = pair.second;
     vec.insert(vec.end(), pair.first.begin(), pair.first.end());
-    std::sort(vec.begin(), vec.end());
+    std::erase_if(vec, [](const std::string& s){return s == reverse[EPS];});
+    if(vec.empty()){
+        vec.push_back(reverse[EPS]);
+    }else
+        std::sort(vec.begin(), vec.end());
     std::string ans = "(";
     for (const auto &elem: vec) {
         ans += elem;
@@ -431,15 +440,15 @@ void printBT(const std::string &prefix, const Node *node, bool isLeft) {
     }
 }
 
-void printBT(const Node *node) {
-    printBT("", node, false);
-}
 
 Regex Regex::der(char let) {
     Regex ans;
     ans.root = cloneBinaryTree(root);
+    std::cout<<'\n';
+    //printBT(root);
     auto t = derivative(ans.root, let);
-    while (hasEmpty(t)) {
+    while (hasEmpty(t) && t->data.first!=EMPTY) {
+      //  printBT(t);
         t = ACI(t);
     }
 #if DEBUG == 1
@@ -453,6 +462,9 @@ Regex Regex::der(char let) {
 }
 
 Regex::Regex(std::string s) : reg(s) {
+    for(auto l : reg){
+        std::cout<<l <<' ';
+    }
     root = buildTree(infixToPostfix(get_lexems(reg)));
 }
 
