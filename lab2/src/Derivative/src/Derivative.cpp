@@ -64,7 +64,7 @@ std::vector<std::pair<int, std::string>> get_lexems(std::string &str) {
             }
             std::string s(1, str[i]);
             ans.emplace_back(map[s], s);
-            if (i + 1 < str.length() && str[i] == ')' && (isalpha(str[i + 1]) || str[i + 1] == '(') &&
+            if (i + 1 < str.length() && (str[i] == ')' || str[i] == '*') && (isalpha(str[i + 1]) || str[i + 1] == '(') &&
                 ans.back().first != CONCAT) {
                 ans.emplace_back(map["·"], "·");
             }
