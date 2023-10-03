@@ -11,9 +11,9 @@
 
 
 class BrzozowskiAutomaton {
-public:
+private:
     std::unordered_map<std::string, int> map; // mapping regex with automation state
-    std::vector<std::pair<std::pair<int, char>, int>>  transitions;
+    std::vector<std::pair<std::pair<int, std::string>, int>>  transitions;
     int initialState{};
     std::string initialRegex;
     std::vector<int> finalStates;
@@ -22,10 +22,18 @@ public:
     std::string findFirstUncompleted();
     void addDerivativeBySymbol(Node *, char, int&, int);
     void addDerivativeByAlphabet(std::string, int&);
+    void addTransition(int stateFrom, int stateTo, char c);
+    void addTransition(std::pair<std::pair<int, std::string>, int>);
+    int refactorStates();
+    void deleteState(int);
+    void getTransitionFromToN(
+            int, std::vector<std::pair<std::pair<int, std::string>, int>>&,
+            std::vector<std::pair<std::pair<int, std::string>, int>>&
+            );
 public:
     explicit BrzozowskiAutomaton(std::string str);
-    void addTransition(std::string regexFrom, std::string regexTo, char c);
     std::string convertToRegex();
+    std::string getDot();
 };
 
 #endif //LAB2_BRZOZOWSKIAUTOMATON_HPP
