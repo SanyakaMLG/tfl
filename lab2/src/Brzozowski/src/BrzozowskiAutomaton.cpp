@@ -101,17 +101,17 @@ BrzozowskiAutomaton::BrzozowskiAutomaton(std::string initialRegex) {
         auto regex = findFirstUncompleted();
         addDerivativeByAlphabet(regex, curState);
     }
-    if (map.contains("∅")) {
-        int toDelete = map["∅"];
-        std::erase_if(transitions, [&](std::pair<std::pair<int, std::string>, int> x) -> bool
-                                            {return x.first.first == toDelete || x.second == toDelete;});
-        map.erase("∅");
-    }
 }
 
 int BrzozowskiAutomaton::refactorStates() {
     int newFinalState = map.size();
     int start = 1;
+    if (map.contains("∅")) {
+        int toDelete = map["∅"];
+        std::erase_if(transitions, [&](std::pair<std::pair<int, std::string>, int> x) -> bool
+        {return x.first.first == toDelete || x.second == toDelete;});
+        map.erase("∅");
+    }
     for (auto finalState: finalStates) {
         transitions.emplace_back(std::make_pair(finalState, ""), newFinalState);
     }
