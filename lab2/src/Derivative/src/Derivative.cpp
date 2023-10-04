@@ -365,6 +365,9 @@ innerSortRegex(Node *cur, Node *parent) {
         case EPS: {
             return {std::set<std::string>{cur->data.second}, {}};
         }
+        case EMPTY: {
+            return {std::set<std::string>{cur->data.second}, {}};
+        }
         case ALTERNATIVE: {
             auto l = innerSortRegex(cur->left, cur);
             auto r = innerSortRegex(cur->right, cur);
@@ -412,6 +415,9 @@ std::string buildShuffle(std::pair<std::set<std::string>, std::vector<std::strin
         vec.push_back(reverse[EPS]);
     }else
         std::sort(vec.begin(), vec.end());
+    if(vec.size() == 1){
+        return vec[0];
+    }
     std::string ans = "(";
     for (const auto &elem: vec) {
         ans += elem;

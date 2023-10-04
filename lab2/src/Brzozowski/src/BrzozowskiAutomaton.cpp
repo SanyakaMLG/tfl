@@ -67,7 +67,7 @@ void BrzozowskiAutomaton::addDerivativeBySymbol(Node *t, char c,
         map[newRegex] = curState;
         transitions.emplace_back(std::make_pair(oldState, std::string(1, c)), curState);
         completeStates[newRegex] = false;
-        if (containsEPS(regex.getTree())) finalStates.push_back(curState);
+        if (containsEPS(newTree.getTree())) finalStates.push_back(curState);
         curState++;
     } else {
         int toState = map[newRegex];
