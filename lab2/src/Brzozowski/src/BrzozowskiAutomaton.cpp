@@ -95,11 +95,17 @@ BrzozowskiAutomaton::BrzozowskiAutomaton(std::string initialRegex) {
     Regex initialRegex1 = Regex(initialRegex);
     map[initialRegex1.get()] = 0;
     if (containsEPS(initialRegex1.getTree())) finalStates.push_back(0);
-    completeStates[initialRegex] = false;
+    completeStates[initialRegex1.get()] = false;
     int curState = 1;
     while (!findFirstUncompleted().empty()) {
         auto regex = findFirstUncompleted();
         addDerivativeByAlphabet(regex, curState);
+    }
+    if (map.contains("∅")) {
+        int toDelete = map["∅"];
+        std::erase_if(transitions, [&](std::pair<std::pair<int, std::string>, int> x) -> bool
+                                            {return x.first.first == toDelete || x.second == toDelete;});
+        map.erase("∅");
     }
 }
 
@@ -111,7 +117,7 @@ int BrzozowskiAutomaton::refactorStates() {
     }
     finalStates.clear();
     for (auto trans: transitions) {
-        if (trans.second == 0 && trans.first.first != 0) {
+        if (trans.second == 0) {
             transitions.emplace_back(std::make_pair(-1, ""), 0);
             start = 0;
             break;
@@ -185,7 +191,7 @@ void BrzozowskiAutomaton::deleteState(int n) {
 std::string BrzozowskiAutomaton::convertToRegex() {
     BrzozowskiAutomaton copyAutomaton = BrzozowskiAutomaton{*this};
     int i = copyAutomaton.refactorStates();
-//    std::cout << copyAutomaton.getDot() << "\n\n\n";
+    std::cout << copyAutomaton.getDot() << "\n\n\n";
     for (i; i < map.size(); i++) {
         copyAutomaton.deleteState(i);
 //        std::cout << copyAutomaton.getDot() << "\n\n\n";
