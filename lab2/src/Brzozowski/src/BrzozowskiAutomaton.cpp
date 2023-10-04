@@ -34,7 +34,8 @@ std::string BrzozowskiAutomaton::getDot() {
 void BrzozowskiAutomaton::addTransition(int stateFrom, int stateTo, char c) {
     for (auto &el: transitions) {
         if (el.first.first == stateFrom && el.second == stateTo) {
-            el.first.second = "(" + el.first.second + "|" + std::string(1, c) + ")";
+            std::string firstArgument = el.first.second == "" ? "(eps)" : el.first.second;
+            el.first.second = "(" + firstArgument + "|" + std::string(1, c) + ")";
             return;
         }
     }
@@ -44,7 +45,8 @@ void BrzozowskiAutomaton::addTransition(int stateFrom, int stateTo, char c) {
 void BrzozowskiAutomaton::addTransition(std::pair<std::pair<int, std::string>, int> trans) {
     for (auto &el: transitions) {
         if (el.first.first == trans.first.first && el.second == trans.second) {
-            el.first.second = "(" + el.first.second + "|" + trans.first.second + ")";
+            std::string firstArgument = el.first.second == "" ? "(eps)" : el.first.second;
+            el.first.second = "(" + firstArgument + "|" + trans.first.second + ")";
             return;
         }
     }
@@ -175,9 +177,9 @@ void BrzozowskiAutomaton::deleteState(int n) {
     erase_if(transitions, [&](std::pair<std::pair<int, std::string>, int> x) -> bool
                                         {return x.first.first == n || x.second == n;});
     for (auto newTrans: newTransitions) {
-
+        addTransition(newTrans);
     }
-    transitions.insert(transitions.end(), newTransitions.begin(), newTransitions.end());
+//    transitions.insert(transitions.end(), newTransitions.begin(), newTransitions.end());
 }
 
 std::string BrzozowskiAutomaton::convertToRegex() {
