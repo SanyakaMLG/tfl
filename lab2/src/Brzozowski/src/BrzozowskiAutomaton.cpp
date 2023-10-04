@@ -90,9 +90,8 @@ BrzozowskiAutomaton::BrzozowskiAutomaton(std::string initialRegex) {
     for (auto c: initialRegex) {
         if (std::isalpha(c)) this->alphabet.insert(c);
     }
-    initialState = 0;
-    map[initialRegex] = 0;
     Regex initialRegex1 = Regex(initialRegex);
+    map[initialRegex1.get()] = 0;
     if (containsEPS(initialRegex1.getTree())) finalStates.push_back(0);
     completeStates[initialRegex] = false;
     int curState = 1;
@@ -184,10 +183,10 @@ void BrzozowskiAutomaton::deleteState(int n) {
 std::string BrzozowskiAutomaton::convertToRegex() {
     BrzozowskiAutomaton copyAutomaton = BrzozowskiAutomaton{*this};
     int i = copyAutomaton.refactorStates();
-    std::cout << copyAutomaton.getDot() << "\n\n\n";
+//    std::cout << copyAutomaton.getDot() << "\n\n\n";
     for (i; i < map.size(); i++) {
         copyAutomaton.deleteState(i);
-        std::cout << copyAutomaton.getDot() << "\n\n\n";
+//        std::cout << copyAutomaton.getDot() << "\n\n\n";
     } // ε
     std::string regex = "";
     for (auto trans: copyAutomaton.transitions) {
