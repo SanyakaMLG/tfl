@@ -22,7 +22,10 @@ std::string BrzozowskiAutomaton::getDot() {
         s.append(std::to_string(el.first.first) + " -> " + std::to_string(el.second) + " [label=\"" + el.first.second + "\"];\n");
     }
     for (auto el: map) {
-        s.append(std::to_string(el.second) + " [label=\"" + el.first + "\"];\n");
+        std::string shape =
+                std::find(finalStates.begin(), finalStates.end(), el.second) != finalStates.end() ?
+                "doublecircle" : "circle";
+        s.append(std::to_string(el.second) + " [label=\"" + el.first + "\", shape=" + shape + "];\n");
     }
     s.append("}");
     return s;
@@ -181,10 +184,10 @@ void BrzozowskiAutomaton::deleteState(int n) {
 std::string BrzozowskiAutomaton::convertToRegex() {
     BrzozowskiAutomaton copyAutomaton = BrzozowskiAutomaton{*this};
     int i = copyAutomaton.refactorStates();
-//    std::cout << copyAutomaton.getDot() << "\n\n\n";
+    std::cout << copyAutomaton.getDot() << "\n\n\n";
     for (i; i < map.size(); i++) {
         copyAutomaton.deleteState(i);
-//        std::cout << copyAutomaton.getDot() << "\n\n\n";
+        std::cout << copyAutomaton.getDot() << "\n\n\n";
     } // ε
     std::string regex = "";
     for (auto trans: copyAutomaton.transitions) {
