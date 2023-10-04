@@ -462,10 +462,8 @@ Regex Regex::der(char let) {
 }
 
 Regex::Regex(std::string s) : reg(s) {
-    for(auto l : reg){
-        std::cout<<l <<' ';
-    }
     root = buildTree(infixToPostfix(get_lexems(reg)));
+    reg = sortRegex(root);
 }
 
 Regex::Regex(Node *root) : root(root) {
