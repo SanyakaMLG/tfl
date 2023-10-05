@@ -23,8 +23,7 @@ std::string BrzozowskiAutomaton::getDot() {
     }
     for (auto el: map) {
         std::string shape =
-                std::find(finalStates.begin(), finalStates.end(), el.second) != finalStates.end() ?
-                "doublecircle" : "circle";
+                finalStates.contains(el.second) ? "doublecircle" : "circle";
         s.append(std::to_string(el.second) + " [label=\"" + el.first + "\", shape=" + shape + "];\n");
     }
     s.append("}");
@@ -61,7 +60,7 @@ std::string BrzozowskiAutomaton::findFirstUncompleted() {
 }
 
 void BrzozowskiAutomaton::addDerivativeBySymbol(Node *t, char c,
-                                                int& curState, int oldState) {
+                                                int& curState, int oldState, bool fuzzing) {
     Regex regex(t);
     auto newTree = regex.der( c);
     std::string newRegex = newTree.get();
@@ -69,38 +68,60 @@ void BrzozowskiAutomaton::addDerivativeBySymbol(Node *t, char c,
         map[newRegex] = curState;
         transitions.emplace_back(std::make_pair(oldState, std::string(1, c)), curState);
         completeStates[newRegex] = false;
-        if (containsEPS(newTree.getTree())) finalStates.push_back(curState);
+        if (containsEPS(newTree.getTree())) finalStates.insert(curState);
         curState++;
+        countStates++;
     } else {
         int toState = map[newRegex];
-        addTransition(oldState, toState, c);
+        if (!fuzzing)
+            addTransition(oldState, toState, c);
+        else
+            transitions.emplace_back(std::make_pair(oldState, std::string(1, c)), toState);
     }
 }
 
 void BrzozowskiAutomaton::addDerivativeByAlphabet(std::string regex,
-                                                  int &curState) {
+                                                  int &curState,
+                                                  bool fuzzing) {
     auto tree = Regex(regex).getTree();
     for (auto c: this->alphabet) {
-        addDerivativeBySymbol(tree, c, curState, map[regex]);
+        addDerivativeBySymbol(tree, c, curState, map[regex], fuzzing);
     }
     completeStates[regex] = true;
 }
 
-
-
-BrzozowskiAutomaton::BrzozowskiAutomaton(std::string initialRegex) {
+BrzozowskiAutomaton::BrzozowskiAutomaton(std::string initialRegex, bool fuzzing) {
     for (auto c: initialRegex) {
         if (std::isalpha(c)) this->alphabet.insert(c);
     }
     Regex initialRegex1 = Regex(initialRegex);
     map[initialRegex1.get()] = 0;
-    if (containsEPS(initialRegex1.getTree())) finalStates.push_back(0);
+    if (containsEPS(initialRegex1.getTree())) finalStates.insert(0);
     completeStates[initialRegex1.get()] = false;
     int curState = 1;
+    countStates = 1;
     while (!findFirstUncompleted().empty()) {
         auto regex = findFirstUncompleted();
-        addDerivativeByAlphabet(regex, curState);
+        addDerivativeByAlphabet(regex, curState, fuzzing);
     }
+    if (fuzzing && map.contains("∅")) {
+        std::erase_if(transitions, [&](std::pair<std::pair<int, std::string>, int> x) -> bool {
+            return x.first.first == map["∅"] || x.second == map["∅"];
+        });
+        map.erase("∅");
+    }
+}
+
+std::vector<std::pair<std::pair<int, std::string>, int>> BrzozowskiAutomaton::getTransitions() {
+    return this->transitions;
+}
+
+int BrzozowskiAutomaton::getCountStates() {
+    return this->countStates;
+}
+
+std::unordered_set<int> BrzozowskiAutomaton::getFinalStates() {
+    return this->finalStates;
 }
 
 int BrzozowskiAutomaton::refactorStates() {
