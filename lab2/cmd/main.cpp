@@ -3,8 +3,8 @@
 #include <regex>
 
 int main() {
-    BrzozowskiAutomaton automata = BrzozowskiAutomaton("(a*|b*)#a*b");
-    DFA dfa = DFA("(a*|b*)#a*b");
+    BrzozowskiAutomaton automata = BrzozowskiAutomaton("d#de*");
+    DFA dfa = DFA("d#de*");
 //    for (auto arr: dfa.reachabilityMatrix) {
 //        for (auto elem: arr) {
 //            std::cout << elem << " ";

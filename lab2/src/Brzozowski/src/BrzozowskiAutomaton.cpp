@@ -169,7 +169,12 @@ std::string findCycle(
     std::string res = "";
     for (auto trans: from) {
         if (trans.second == trans.first.first) {
-            res = trans.first.second + "*";
+            std::string underStar = "";
+            if (trans.first.second.size() > 1)
+                underStar = "(" + trans.first.second + ")";
+            else
+                underStar = trans.first.second;
+            res = underStar + "*";
             std::erase(to, trans);
             std::erase(from, trans);
             break;
