@@ -40,7 +40,7 @@ std::vector<int> DFA::getRandomTraversal() {
         auto possibleWays = getTrueIndexes(reachabilityMatrix[curState]);
         if (possibleWays.size() == 0)
             return traversal;
-        if (finalStates.contains(curState) && std::rand() % 10 >= 8) break;
+        if (finalStates.contains(curState) && std::rand() % 10 == 9) break;
         curState = chooseRandom(possibleWays);
         traversal.push_back(curState);
     }

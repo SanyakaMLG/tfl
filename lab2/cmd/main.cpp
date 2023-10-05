@@ -1,9 +1,10 @@
 #include "BrzozowskiAutomaton.hpp"
 #include "DFA.hpp"
+#include <regex>
 
 int main() {
-    BrzozowskiAutomaton automata = BrzozowskiAutomaton("(a*|b*)#a*");
-    DFA dfa = DFA("(a*|b*)#a*");
+    BrzozowskiAutomaton automata = BrzozowskiAutomaton("(a*|b*)#a*b");
+    DFA dfa = DFA("(a*|b*)#a*b");
 //    for (auto arr: dfa.reachabilityMatrix) {
 //        for (auto elem: arr) {
 //            std::cout << elem << " ";
@@ -17,10 +18,16 @@ int main() {
 //        }
 //        std::cout << "\n";
 //    }
-    auto regex = automata.convertToRegex();
-    for (int i = 0; i < 20; i++) {
-        std::cout << dfa.getRandomString() << "\n";
+    auto outRegex = automata.convertToRegex();
+    std::regex regexp("\\(eps\\)");
+    outRegex = std::regex_replace(outRegex, regexp, "");
+    regexp = std::regex(outRegex);
+    std::cout << outRegex << "\n";
+    for (int i = 0; i < 1000; i++) {
+        if (std::regex_match(dfa.getRandomString(), regexp)) {
+        } else {
+            std::cout << "incorrect\n";
+        }
     }
-    std::cout << regex;
     return 0;
 }

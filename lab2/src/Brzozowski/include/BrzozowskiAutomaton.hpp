@@ -11,7 +11,7 @@
 
 
 class BrzozowskiAutomaton {
-public:
+private:
     std::unordered_map<std::string, int> map; // mapping regex with automation state
     std::vector<std::pair<std::pair<int, std::string>, int>>  transitions;
     std::string initialRegex;

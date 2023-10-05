@@ -14,7 +14,7 @@ struct pair_hash {
 };
 
 class DFA {
-public:
+private:
     std::vector<std::vector<bool>> reachabilityMatrix;
     std::unordered_map<std::pair<int, int>, std::vector<char>, pair_hash> transitions;
     std::unordered_set<int> finalStates;
