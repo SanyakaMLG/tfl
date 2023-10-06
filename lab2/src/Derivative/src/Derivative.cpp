@@ -65,6 +65,15 @@ std::vector<std::pair<int, std::string>> get_lexems(std::string &str) {
         }
         if ((str[i] == '(' || str[i] == ')' || str[i] == '|' || str[i] == '*' || str[i] == '#') &&
             count_slash(str, i) % 2 == 0) {
+            if (!ans.empty() && ans.back().first == WORD && ans.back().second.length() > 1 && str[i] == '*') {
+                std::string word = ans.back().second;
+                std::string newWord = word.substr(0, word.length() - 1);
+                std::string let(1, word.back());
+                ans.pop_back();
+                ans.emplace_back(WORD, newWord);
+                ans.emplace_back(CONCAT, reverse[CONCAT]);
+                ans.emplace_back(WORD, let);
+            }
             if (i > 0 && str[i] == '(' && (isalpha(str[i - 1]) || str[i - 1] == ')') && ans.back().first != CONCAT) {
                 ans.emplace_back(map["·"], "·");
             }
@@ -198,6 +207,7 @@ bool containsEPS(Node *root) {
 }
 
 Node *derivative(Node *root, char var) {
+    //printBT(root);
     if (root->data.first == WORD) {
         if (root->data.second[0] == var) {
             if (root->data.second.length() > 1) {
@@ -226,12 +236,13 @@ Node *derivative(Node *root, char var) {
         Node *r = cloneBinaryTree(root->right);
         root->left = new Node(std::pair(CONCAT, reverse[CONCAT]),
                               derivative(root->left, var), r);
-        std::cout << std::endl;
+        //printBT(root);
         if (containsEPS(l)) {
             root->right = derivative(root->right, var);
         } else {
             root->right = new Node(std::pair(EMPTY, reverse[EMPTY]));
         }
+        //printBT(root);
     } else if (root->data.first == KLINI) {
         auto r = cloneBinaryTree(root);
         root->data.first = CONCAT;
@@ -341,6 +352,31 @@ bool hasEmpty(Node *root) {
     return hasEmpty(root->left) || hasEmpty(root->right);
 }
 
+bool hasReduntantEps(Node *root) {
+    if (root->data.first == WORD) {
+        return false;
+    }
+    if (root->data.first == KLINI) {
+        return hasReduntantEps(root->left);
+    }
+    if (root->data.first == SHUFFLE || root->data.first == CONCAT) {
+        if (root->left->data.first == EPS || root->right->data.first == EPS) {
+            return true;
+        }
+    }
+    if (root->data.first == ALTERNATIVE) {
+        if (root->left->data.first == EPS && root->right->data.first == EPS) {
+            return false;
+        }
+        if (root->left->data.first == EPS)
+            return hasReduntantEps(root->right);
+        if (root->right->data.first == EPS)
+            return hasReduntantEps(root->left);
+    }
+    return hasReduntantEps(root->left) || hasReduntantEps(root->right);
+
+}
+
 
 std::string buildString(const std::set<std::string> &set, int type) {
     std::string ans = "(";
@@ -410,12 +446,12 @@ innerSortRegex(Node *cur, Node *parent) {
 std::string buildShuffle(std::pair<std::set<std::string>, std::vector<std::string>> pair) {
     std::vector<std::string> vec = pair.second;
     vec.insert(vec.end(), pair.first.begin(), pair.first.end());
-    std::erase_if(vec, [](const std::string& s){return s == reverse[EPS];});
-    if(vec.empty()){
+    std::erase_if(vec, [](const std::string &s) { return s == reverse[EPS]; });
+    if (vec.empty()) {
         vec.push_back(reverse[EPS]);
-    }else
+    } else
         std::sort(vec.begin(), vec.end());
-    if(vec.size() == 1){
+    if (vec.size() == 1) {
         return vec[0];
     }
     std::string ans = "(";
@@ -450,11 +486,13 @@ void printBT(const std::string &prefix, const Node *node, bool isLeft) {
 Regex Regex::der(char let) {
     Regex ans;
     ans.root = cloneBinaryTree(root);
-    std::cout<<'\n';
     //printBT(root);
     auto t = derivative(ans.root, let);
-    while (hasEmpty(t) && t->data.first!=EMPTY) {
-      //  printBT(t);
+    while (hasEmpty(t) && t->data.first != EMPTY) {
+        //printBT(t);
+        t = ACI(t);
+    }
+    while (t->data.first != EPS && t->data.first != EMPTY && hasReduntantEps(t)) {
         t = ACI(t);
     }
 #if DEBUG == 1

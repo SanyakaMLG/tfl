@@ -3,7 +3,7 @@
 #include <regex>
 
 int main() {
-    BrzozowskiAutomaton automata = BrzozowskiAutomaton("d#de*");
+    BrzozowskiAutomaton automata = BrzozowskiAutomaton("(a*)*");
     DFA dfa = DFA("d#de*");
 //    for (auto arr: dfa.reachabilityMatrix) {
 //        for (auto elem: arr) {
