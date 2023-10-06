@@ -246,6 +246,9 @@ Node *derivative(Node *root, char var) {
         }
         //printBT(root);
     } else if (root->data.first == KLINI) {
+        while(root->left->data.first == KLINI){
+            root = root->left;
+        }
         auto r = cloneBinaryTree(root);
         root->data.first = CONCAT;
         root->data.second = reverse[CONCAT];

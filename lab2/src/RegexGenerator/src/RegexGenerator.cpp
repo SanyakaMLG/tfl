@@ -102,14 +102,15 @@ std::vector<Regex> RegexGenerator::gen(int number) {
 RegexGenerator::RegexGenerator(std::string &path) {
     std::string cnt;
     std::ifstream file(path);
-    getline(file,cnt);
+    getline(file,cnt, ' ');
     alphabet_len = std::stoi(cnt);
-    getline(file,cnt);
+    getline(file,cnt, ' ');
     star_height = std::stoi(cnt);
-    getline(file,cnt);
+    getline(file,cnt, ' ');
     max_len = std::stoi(cnt);
-    getline(file,cnt);
+    getline(file,cnt, ' ');
     len = std::stoi(cnt);
+    file.close();
 }
 
 std::vector<Regex> RegexGenerator::gen() {

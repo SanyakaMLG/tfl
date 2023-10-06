@@ -8,9 +8,10 @@ namespace ProgramOptions {
 
     void parse(int argc, char* argv[]);
 
-    const std::string_view&              str();
-    bool                                 need_file();
-    bool                                 use_generator();
+    const std::string_view& str();
+    bool need_file();
+    bool use_generator();
+    bool log();
 
 }
 
