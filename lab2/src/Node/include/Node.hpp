@@ -7,7 +7,6 @@
 
 struct Node {
     explicit Node(const std::pair<int, std::string> &data_);
-
     Node(const std::pair<int, std::string> &data_, Node *l, Node *r);
     Node() = default;
     std::pair<int, std::string> data;

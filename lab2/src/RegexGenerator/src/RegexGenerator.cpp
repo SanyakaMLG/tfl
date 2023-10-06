@@ -1,5 +1,6 @@
 
 #include <random>
+#include <fstream>
 #include "RegexGenerator.hpp"
 
 const int EMPTY(-1);
@@ -25,7 +26,8 @@ std::unordered_map<std::string, int> mp = {{"word", WORD},
 
 RegexGenerator::RegexGenerator(int alphabet_len, int star_height, int max_len) : alphabet_len(alphabet_len),
                                                                                  star_height(star_height),
-                                                                                 max_len(max_len) {
+                                                                                 max_len(max_len),
+                                                                                 len(0){
 }
 
 bool randomBool() {
@@ -95,6 +97,23 @@ std::vector<Regex> RegexGenerator::gen(int number) {
         ans.emplace_back(root);
     }
     return ans;
+}
+
+RegexGenerator::RegexGenerator(std::string &path) {
+    std::string cnt;
+    std::ifstream file(path);
+    getline(file,cnt);
+    alphabet_len = std::stoi(cnt);
+    getline(file,cnt);
+    star_height = std::stoi(cnt);
+    getline(file,cnt);
+    max_len = std::stoi(cnt);
+    getline(file,cnt);
+    len = std::stoi(cnt);
+}
+
+std::vector<Regex> RegexGenerator::gen() {
+    return gen(len);
 }
 
 

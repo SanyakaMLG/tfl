@@ -217,7 +217,7 @@ void BrzozowskiAutomaton::deleteState(int n) {
 std::string BrzozowskiAutomaton::convertToRegex() {
     BrzozowskiAutomaton copyAutomaton = BrzozowskiAutomaton{*this};
     int i = copyAutomaton.refactorStates();
-    std::cout << copyAutomaton.getDot() << "\n\n\n";
+    //std::cout << copyAutomaton.getDot() << "\n\n\n";
     for (i; i < map.size(); i++) {
         copyAutomaton.deleteState(i);
 //        std::cout << copyAutomaton.getDot() << "\n\n\n";

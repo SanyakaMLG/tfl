@@ -162,7 +162,9 @@ std::vector<std::pair<int, std::string>> infixToPostfix(const std::vector<std::p
 }
 
 Node *buildTree(const std::vector<std::pair<int, std::string>> &lexems) {
-
+    if(lexems.empty()){
+        return new Node(std::pair(EPS, reverse[EPS]));
+    }
     std::stack<Node *> nodes;
     for (const auto &lex: lexems) {
         if (lex.first == WORD) {
