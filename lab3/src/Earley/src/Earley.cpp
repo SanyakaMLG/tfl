@@ -1,36 +1,19 @@
-#include <iostream>
-#include <set>
-#include <vector>
-#include <map>
+#include "Earley.hpp"
 
-namespace Eearley {
-    using grammar_t = std::map<std::string, std::set<std::vector<std::string>>>;
-    using earley_grammar_t = std::map<std::string, std::set<std::string>>;
-    using state_t = std::tuple<std::string, std::vector<std::string>,size_t, int>;
-    using set_of_states_t = std::set<state_t>;
-    using situation_map_t = std::map<std::string, set_of_states_t>;
-    using s_vector = std::vector<std::string>;
-}
-using namespace Eearley;
 
-void addZeroState(grammar_t &grammar) {
-    if (grammar.contains("S")) {
-        std::vector<std::string> v(1, "S");
-        grammar["[ZERO]"].insert(v);
-    }
-    if (grammar.contains("S^")) {
-        std::vector<std::string> v(1, "S^");
-        grammar["[ZERO]"].insert(v);
-    }
+using namespace EarleyNames;
+
+void addZeroState(Grammar &grammar) {
+    std::string oldZero = grammar.ZeroState;
+    grammar.ZeroState = "[ZERO]";
+    grammar.grammar[grammar.ZeroState].insert(std::vector<std::string>(1, oldZero));
 }
 
-std::vector<situation_map_t> init(size_t size, grammar_t &grammar) {
+std::vector<situation_map_t> init(size_t size, Grammar &grammar) {
     situation_map_t D0;
     std::vector<situation_map_t> states;
-    if (grammar.contains("S^"))
-        D0["S^"].insert(state_t("[ZERO]", s_vector(1,"S^"),0, 0));
-    else
-        D0["S"].insert(state_t("[ZERO]",  s_vector(1,"S"),0, 0));
+    std::string left = (*grammar.grammar[grammar.ZeroState].begin())[0];
+    D0[left].insert(state_t(grammar.ZeroState,  s_vector(1,left),0, 0));
     states.push_back(D0);
     for (int i = 1; i < size; i++) {
         situation_map_t D;
@@ -107,7 +90,7 @@ bool complete(std::vector<situation_map_t> &situations, size_t j) {
 bool createStatePredict(situation_map_t &situation, const std::string &left,const s_vector &rule,
                         size_t j) {
     bool changed = false;
-    std::string key = rule[0];
+    const std::string& key = rule[0];
     state_t state = std::make_tuple(left, rule, 0, j);
     size_t size = situation[key].size();
     situation[key].insert(state);
@@ -117,11 +100,11 @@ bool createStatePredict(situation_map_t &situation, const std::string &left,cons
     return changed;
 }
 
-bool predict(std::vector<situation_map_t> &situations, size_t j, grammar_t &grammar) {
+bool predict(std::vector<situation_map_t> &situations, size_t j, Grammar &grammar) {
     bool changed = false;
     for (auto &rules: situations[j]) {
-        if (grammar.contains(rules.first)) {
-            for (auto &rule: grammar[rules.first]) {
+        if (grammar.grammar.contains(rules.first)) {
+            for (auto &rule: grammar.grammar[rules.first]) {
                 changed = createStatePredict(situations[j], rules.first, rule, j) || changed;
             }
         }
@@ -129,31 +112,16 @@ bool predict(std::vector<situation_map_t> &situations, size_t j, grammar_t &gram
     return changed;
 }
 
-earley_grammar_t modifyGrammar(grammar_t &grammar) {
-    earley_grammar_t newGrammar;
-    for (const auto &rule: grammar) {
-
-        for (const auto &item: rule.second) {
-            std::string str;
-            for (const auto &letter: item) {
-                str.append(letter);
-            }
-            newGrammar[rule.first].insert(str);
-        }
-    }
-    return newGrammar;
-}
-
-bool Earley(grammar_t &grammar, std::string &word) {
-    if(word.empty() && grammar.contains("S^")){
+bool Earley(Grammar grammar, std::string &word) {
+    if(word.empty() && grammar.grammar[grammar.ZeroState].contains(std::vector<std::string>(1,"e"))){
         return true;
     }else{
-        if (grammar.contains("S^")){
-            grammar["S^"].erase(std::vector<std::string>(1,"eps"));
+        if (grammar.grammar[grammar.ZeroState].contains(std::vector<std::string>(1,"e"))){
+            grammar.grammar[grammar.ZeroState].erase(std::vector<std::string>(1,"e"));
         }
     }
+    std::string old_state = grammar.ZeroState;
     addZeroState(grammar);
-    //auto new_grammar = modifyGrammar(grammar);
     auto states = init(word.length()+1, grammar);
     for (size_t j = 0; j <= word.length(); j++) {
         scan(states, j, word);
@@ -176,7 +144,6 @@ bool Earley(grammar_t &grammar, std::string &word) {
             }
         }
     }
-    bool ans = states[word.length()]["$"].contains(std::make_tuple("[ZERO]",s_vector (1,"S"),1, 0));
-    ans = ans || states[word.length()]["$"].contains(std::make_tuple("[ZERO]",s_vector (1,"S^"),1, 0));
+    bool ans = states[word.length()]["$"].contains(std::make_tuple("[ZERO]",s_vector (1,old_state),1, 0));
     return ans;
 }

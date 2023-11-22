@@ -1,9 +1,11 @@
+#include "utils.hpp"
+
+
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <vector>
 #include <set>
-#include "Earley.hpp"
 
 /*
  Правила записи грамматики:
@@ -11,12 +13,21 @@
  Терминалы - строчные или другие символы(за исключением специальных)*/
 
 
-std::map<std::string, std::set<std::vector<std::string>>> getGrammar(const std::string &grammar);
 
-void splitRight(std::set<std::vector<std::string>> &rule, std::string &right);
+void optimizeGrammar(Grammar &grammar){
+    for (auto& item: grammar.grammar){
+        for(auto it =item.second.begin(); it!=item.second.end();){
+            if(std::vector<std::string>(1, item.first) ==*it){
+                it = item.second.erase(it);
+            } else{
+                it++;
+            }
+        }
+    }
+}
 
 
-void getRulePrefix(std::map<std::string, std::set<std::vector<std::string>>> &grammar,
+void getRulePrefix(Grammar &grammar,
                    const std::string &left,
                    const std::set<std::vector<std::string>> &right) {
     std::string prefix_left = left + "^";
@@ -32,26 +43,27 @@ void getRulePrefix(std::map<std::string, std::set<std::vector<std::string>>> &gr
             } else {
                 new_rule.insert(new_rule.end(), prefix.begin(), prefix.end());
             }
-            grammar[prefix_left].insert(new_rule);
+            grammar.grammar[prefix_left].insert(new_rule);
         }
     }
 }
 
-std::map<std::string, std::set<std::vector<std::string>>>
-getPrefixLanguageGrammar(std::map<std::string, std::set<std::vector<std::string>>> &grammar) {
-    std::map<std::string, std::set<std::vector<std::string>>> prefix_grammar;
-    for (const auto &rule: grammar) {
-        prefix_grammar[rule.first] = rule.second;
+Grammar getPrefixLanguageGrammar(Grammar &grammar) {
+    Grammar prefix_grammar;
+    for (const auto &rule: grammar.grammar) {
+        prefix_grammar.grammar[rule.first] = rule.second;
     }
-    prefix_grammar["S^"].insert(std::vector<std::string>(1, "eps"));
-    for (const auto &rule: grammar) {
+    prefix_grammar.ZeroState += grammar.ZeroState+"^";
+    prefix_grammar.grammar[prefix_grammar.ZeroState].insert(std::vector<std::string>(1, "e"));
+    for (const auto &rule: grammar.grammar) {
         getRulePrefix(prefix_grammar, rule.first, rule.second);
     }
+    optimizeGrammar(prefix_grammar);
     return prefix_grammar;
 }
 
-void printGrammar(std::map<std::string, std::set<std::vector<std::string>>> &grammar) {
-    for (const auto &rule: grammar) {
+void printGrammar(Grammar &grammar) {
+    for (const auto &rule: grammar.grammar) {
         std::cout << rule.first << " -> ";
         size_t i = rule.second.size();
         for (const auto &r: rule.second) {
@@ -66,7 +78,7 @@ void printGrammar(std::map<std::string, std::set<std::vector<std::string>>> &gra
     }
 }
 
-void reverseRule(std::map<std::string, std::set<std::vector<std::string>>> &grammar, const std::string &left,
+void reverseRule(Grammar &grammar, const std::string &left,
                  std::set<std::vector<std::string>> &right) {
     for (auto &item: right) {
         std::vector<std::string> reverse(item.size());
@@ -75,32 +87,32 @@ void reverseRule(std::map<std::string, std::set<std::vector<std::string>>> &gram
             reverse[i] = let;
             i--;
         }
-        grammar[left].insert(reverse);
+        grammar.grammar[left].insert(reverse);
     }
 }
 
-std::map<std::string, std::set<std::vector<std::string>>>
-reverseGrammar(std::map<std::string, std::set<std::vector<std::string>>> &grammar) {
-    std::map<std::string, std::set<std::vector<std::string>>> reverse_grammar;
-    for (auto &rule: grammar) {
+Grammar reverseGrammar(Grammar &grammar) {
+    Grammar reverse_grammar;
+    reverse_grammar.ZeroState = grammar.ZeroState;
+    for (auto &rule: grammar.grammar) {
         reverseRule(reverse_grammar, rule.first, rule.second);
     }
     return reverse_grammar;
 }
 
 
-std::set<std::string> getEpsRules(std::map<std::string, std::set<std::vector<std::string>>> &grammar) {
+std::set<std::string> getEpsRules(Grammar &grammar) {
     std::set<std::string> ans;
-    for (const auto &rules: grammar) {
+    for (const auto &rules: grammar.grammar) {
         if (rules.second.contains(std::vector<std::string>(1, "e"))) {
             ans.insert(rules.first);
-            grammar[rules.first].erase(std::vector<std::string>(1, "e"));
+            grammar.grammar[rules.first].erase(std::vector<std::string>(1, "e"));
         }
     }
     bool changed = true;
     while (changed) {
         size_t len = ans.size();
-        for (const auto &rules: grammar) {
+        for (const auto &rules: grammar.grammar) {
             for (const auto &v_rules: rules.second) {
                 bool contains = true;
                 for (const auto &letter: v_rules) {
@@ -130,7 +142,7 @@ std::vector<int> getIndex(std::string &let, std::vector<std::string> &rules) {
     return ans;
 }
 
-void getSubsets(std::vector<int> &idxes, std::vector<std::vector<int>>& subsets, std::vector<int> &subset, int idx) {
+void getSubsets(std::vector<int> &idxes, std::vector<std::vector<int>> &subsets, std::vector<int> &subset, int idx) {
     subsets.push_back(subset);
     for (int i = idx; i < idxes.size(); i++) {
         subset.push_back(idxes[i]);
@@ -138,82 +150,57 @@ void getSubsets(std::vector<int> &idxes, std::vector<std::vector<int>>& subsets,
         subset.pop_back();
     }
 }
-std::vector<std::string> getNewRule(std::vector<int>& idx, std::vector<std::string>& rule){
+
+std::vector<std::string> getNewRule(std::vector<int> &idx, std::vector<std::string> &rule) {
     std::vector<std::string> newRule = rule;
-    for(int i:idx){
-        newRule.erase(newRule.begin()+i);
+    for (int i: idx) {
+        newRule.erase(newRule.begin() + i);
     }
     return newRule;
 }
-std::map<std::string, std::set<std::vector<std::string>>>  deleteEpsRules(std::map<std::string, std::set<std::vector<std::string>>> &grammar) {
+
+Grammar deleteEpsRules(Grammar &grammar) {
     std::set<std::string> eps_rules = getEpsRules(grammar);
-    std::map<std::string, std::set<std::vector<std::string>>> new_grammar;
-    for(auto rule:grammar){
-        new_grammar.insert(rule);
+    Grammar new_grammar;
+    for (auto rule: grammar.grammar) {
+        new_grammar.grammar.insert(rule);
     }
     for (auto rule: eps_rules) {
-        for (auto rules: new_grammar) {
+        for (auto rules: new_grammar.grammar) {
             for (auto r: rules.second) {
                 std::vector<int> idxes = getIndex(rule, r);
                 std::vector<std::vector<int>> subsets;
                 std::vector<int> subset;
                 int idx = 0;
                 getSubsets(idxes, subsets, subset, idx);
-                for(auto sub: subsets){
+                for (auto sub: subsets) {
                     std::vector<std::string> newRule;
-                    if(!sub.empty()){
+                    if (!sub.empty()) {
                         newRule = getNewRule(sub, r);
-                        if(!newRule.empty())
-                            new_grammar[rules.first].insert(newRule);
+                        if (!newRule.empty())
+                            new_grammar.grammar[rules.first].insert(newRule);
                     }
                 }
             }
         }
     }
-    if(eps_rules.contains("S")){
-        std::vector<std::string> s = {"S"};
-    std::vector<std::string> e = {"e"};
-        new_grammar["S''"].insert(s);
-        new_grammar["S''"].insert(e);
+    if (eps_rules.contains(grammar.ZeroState)) {
+        new_grammar.ZeroState = grammar.ZeroState + "'";
+        std::vector<std::string> s = {grammar.ZeroState};
+        std::vector<std::string> e = {"e"};
+        new_grammar.grammar[new_grammar.ZeroState].insert(s);
+        new_grammar.grammar[new_grammar.ZeroState].insert(e);
+    }else{
+        new_grammar.ZeroState = grammar.ZeroState;
     }
     return new_grammar;
 }
 
-int main() {
-    std::string grammarPath("grammar");
-    auto grammar = getGrammar(grammarPath);
-    std::cout << "OriginalGrammar" << '\n';
-    printGrammar(grammar);
-    auto new_grammar = deleteEpsRules(grammar);
-    std::cout << "OriginalGrammar DEl_EPS" << '\n';
-    printGrammar(new_grammar);
-//    std::cout << ^\n^ << "ReversedGrammar" << ^\n^;
-//    auto reversedGrammar = reverseGrammar(grammar);
-//    printGrammar(reversedGrammar);
-    auto prefixGrammar = getPrefixLanguageGrammar(grammar);
-    std::cout << '\n' << "PrefixGrammar" << '\n';
-    printGrammar(prefixGrammar);
-    std::string word = "(a+a";
-    std::cout << "Candidate: " << word << '\n';
-    bool ans = Earley(grammar, word);
-    bool pref = Earley(prefixGrammar, word);
-    if (ans) {
-        std::cout << word << " ∈ L" << '\n';
-    } else {
-        std::cout << word << " ∉ L" << '\n';
-    }
-    if (pref) {
-        std::cout << word << " ∈ Prefix(L)" << '\n';
-    } else {
-        std::cout << word << " ∉ Prefix(L)" << '\n';
-    }
-    return 0;
-}
 
-std::map<std::string, std::set<std::vector<std::string>>> getGrammar(const std::string &grammarPath) {
+Grammar getGrammar(const std::string &grammarPath) {
     std::ifstream grammar(grammarPath);
     std::string rule;
-    std::map<std::string, std::set<std::vector<std::string>>> ans;
+    grammar_t ans;
     while (std::getline(grammar, rule)) {
         rule.erase(std::remove_if(rule.begin(), rule.end(), ::isspace),
                    rule.end());
@@ -221,7 +208,8 @@ std::map<std::string, std::set<std::vector<std::string>>> getGrammar(const std::
         std::string right = rule.substr(rule.find("->") + 2, rule.length() - 1);
         splitRight(ans[left], right);
     }
-    return ans;
+
+    return {"S", ans};
 }
 
 void splitRight(std::set<std::vector<std::string>> &rule, std::string &right) {
