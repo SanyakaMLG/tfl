@@ -9,8 +9,10 @@ class LStar {
 private:
     OracleModule oracle;
     std::set<char> alphabet;
+    std::vector<std::string> partition;
 public:
-    LStar(OracleModule _oracle, std::set<char> _alphabet): oracle(_oracle), alphabet(_alphabet) {}
+    LStar(OracleModule _oracle, std::set<char> _alphabet, std::vector<std::string> _partition):
+    oracle(_oracle), alphabet(_alphabet), partition(_partition) {}
 
     DFA get_language_in_alphabet(std::set<char> alphabet);
 };

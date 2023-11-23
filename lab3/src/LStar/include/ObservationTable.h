@@ -4,6 +4,7 @@
 #include "OracleModule.hpp"
 #include <set>
 #include <unordered_map>
+#include "DFA.hpp"
 
 
 class ObservationTable {
@@ -16,6 +17,10 @@ private:
     std::unordered_map<std::string, std::vector<bool>> extended_prefix;
     std::set<std::vector<bool>> rows;
     std::set<std::vector<bool>> extended_rows;
+    bool is_consistent(std::string&, std::string&, char&);
+    bool is_closed();
+    void make_closure();
+    void make_consistence(std::string&, std::string&, char&);
 public:
     ObservationTable(OracleModule oracle, std::string mode, std::set<char> alphabet): oracle(oracle), mode(mode), alphabet(alphabet) {
         if (mode != "prefix" && mode != "suffix" && mode != "infix")
@@ -45,19 +50,11 @@ public:
             extended_rows.insert(prefix[s]);
         }
 
-        char suf = '-';
-        std::string pref1, pref2;
-        while (!is_consistent(pref1, pref2, suf) || !is_closed()) {
-            if (!is_closed())
-                make_closure();
-            if (suf != '-')
-                make_consistence(pref1, pref2, suf);
-        }
+        make_consistence_and_closure();
     }
-    bool is_consistent(std::string&, std::string&, char&);
-    bool is_closed();
-    void make_closure();
-    void make_consistence(std::string&, std::string&, char&);
+    void make_consistence_and_closure();
+    DFA convert_to_dfa();
+    void add_counterexample(std::string);
 };
 
 

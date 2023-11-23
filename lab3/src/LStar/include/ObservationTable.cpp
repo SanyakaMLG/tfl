@@ -109,3 +109,96 @@ void ObservationTable::make_consistence(std::string &pref1, std::string &pref2, 
         p.second.push_back(ans);
     }
 }
+
+void ObservationTable::make_consistence_and_closure() {
+    char suf = '-';
+    std::string pref1, pref2;
+    while (!is_consistent(pref1, pref2, suf) || !is_closed()) {
+        if (!is_closed())
+            make_closure();
+        if (suf != '-')
+            make_consistence(pref1, pref2, suf);
+    }
+}
+
+DFA ObservationTable::convert_to_dfa() {
+    DFA dfa(alphabet);
+
+    std::unordered_map<std::vector<bool>, int> mp;
+    std::unordered_map<std::vector<bool>, std::string> mp1;
+    std::set<std::vector<bool>> states;
+    int count = 0;
+
+    for (auto p: prefix) {
+        if (!states.contains(p.second)) {
+            states.insert(p.second);
+            mp[p.second] = count;
+            mp1[p.second] = p.first;
+            if (p.second[0])
+                dfa.addFinalState(count++);
+        }
+    }
+
+    for (auto state: states) {
+        std::string pref = mp1[state];
+        for (auto c: alphabet) {
+            std::string c_str = std::string(1, c);
+            if (prefix.contains(pref + c_str)) {
+                dfa.addTransition(
+                        mp[state],
+                        c,
+                        mp[prefix[pref + c_str]]
+                );
+            }
+        }
+    }
+
+    return dfa;
+}
+
+void ObservationTable::add_counterexample(std::string s) {
+    for (int i = 0; i < s.size(); i++) {
+        std::string sub = s.substr(s.size() - i - 1, s.size());
+        if (!prefix.contains(sub) && !extended_prefix.contains(sub)) {
+            std::vector<bool> vec;
+            for (auto suf: suffix) {
+                std::string str = sub + suf;
+                bool ans;
+                if (mode == "prefix")
+                    ans = oracle.inPrefixLanguage(str);
+                else if (mode == "suffix")
+                    ans = oracle.inPostfixLanguage(str);
+                else
+                    ans = oracle.inInfixLanguage(str);
+                vec.push_back(ans);
+            }
+            prefix[sub] = vec;
+        } else if (!prefix.contains(sub)) {
+            prefix[sub] = extended_prefix[sub];
+            extended_prefix.erase(sub);
+        }
+    }
+
+    // how to efficiently add new strings to extended prefix?
+    extended_prefix.clear();
+    for (auto p: prefix) {
+        for (auto c: alphabet) {
+            std::string str = p.first + std::string(1, c);
+            if (!prefix.contains(str) && !extended_prefix.contains(str)) {
+                std::vector<bool> vec;
+                for (auto suf: suffix) {
+                    std::string str1 = str + suf;
+                    bool ans;
+                    if (mode == "prefix")
+                        ans = oracle.inPrefixLanguage(str1);
+                    else if (mode == "suffix")
+                        ans = oracle.inPostfixLanguage(str1);
+                    else
+                        ans = oracle.inInfixLanguage(str1);
+                    vec.push_back(ans);
+                }
+                extended_prefix[str] = vec;
+            }
+        }
+    }
+}
