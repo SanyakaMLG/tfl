@@ -160,11 +160,11 @@ std::vector<std::string> getNewRule(std::vector<int> &idx, std::vector<std::stri
 }
 
 Grammar deleteEpsRules(Grammar &grammar) {
-    std::set<std::string> eps_rules = getEpsRules(grammar);
     Grammar new_grammar;
     for (auto rule: grammar.grammar) {
         new_grammar.grammar.insert(rule);
     }
+    std::set<std::string> eps_rules = getEpsRules(new_grammar);
     for (auto rule: eps_rules) {
         for (auto rules: new_grammar.grammar) {
             for (auto r: rules.second) {
