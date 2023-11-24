@@ -20,12 +20,12 @@ private:
     std::unordered_map<std::string, std::vector<bool>> extended_prefix;
     std::set<std::vector<bool>> rows;
     std::set<std::vector<bool>> extended_rows;
-    bool check_string(std::string&);
     bool is_consistent(std::string&, std::string&, char&);
     bool is_closed();
     void make_closure();
     void make_consistence(std::string&, std::string&, char&);
 public:
+    bool check_string(std::string&);
     void print_table();
     void make_consistence_and_closure();
     ObservationTable(OracleModule oracle, std::string mode, std::set<char> alphabet,

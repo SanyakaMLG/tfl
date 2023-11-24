@@ -11,6 +11,7 @@ void DFA::setCount(int count) {
 
 void DFA::addTransition(int from, char c, int to) {
     transitions.emplace_back(std::make_pair(from, c), to);
+    transitions_map[from][c] = to;
 }
 
 void dfs(int start, std::set<int> &visited, std::unordered_map<int, std::set<int>> &back_trans) {
@@ -62,4 +63,28 @@ void DFA::printDot() {
     }
     res.append("}");
     std::cout << res << std::endl;
+}
+
+int DFA::getSize() {
+    return this->count_states;
+}
+
+void DFA::clear() {
+    count_states = 0;
+    transitions.clear();
+    transitions_map.clear();
+    final_states.clear();
+    alphabet.clear();
+}
+
+bool DFA::checkString(std::string &str) {
+    int cur_state = 0;
+    for (auto c: str) {
+        if (!transitions_map[cur_state].contains(c))
+            return false;
+
+        cur_state = transitions_map[cur_state][c];
+    }
+
+    return final_states.contains(cur_state);
 }

@@ -7,6 +7,24 @@
  Нетерминалы - заглавные буквы
  Терминалы - строчные или другие символы(за исключением специальных)*/
 
+std::set<std::set<char>> including_alphabet(std::set<char> full_alphabet, std::set<char> tmp_alphabet) {
+    std::set<std::set<char>> res = {tmp_alphabet};
+    std::set<char> not_in_alph;
+    std::set_difference(full_alphabet.begin(), full_alphabet.end(),
+                        tmp_alphabet.begin(), tmp_alphabet.end(),
+                        std::inserter(not_in_alph, not_in_alph.begin()));
+
+    while (!res.contains(full_alphabet)) {
+        for (auto el: res) {
+            for (auto c: not_in_alph) {
+                std::set<char> tmp = el;
+                tmp.insert(c);
+                res.insert(tmp);
+            }
+        }
+    }
+    return res;
+}
 
 
 int main() {
@@ -61,21 +79,24 @@ int main() {
     }
 
     std::set<char> alphabet = {'a', 'b'};
-    std::vector<std::string> partition = {"ab", "a", "aabb", "b", "aabb"};
+    std::vector<std::string> partition = {"aa", "a", "aabb", "b", "bb"};
     ObservationTable table(Oracle, "prefix", alphabet, 5, partition);
-//    table.print_table();
+    table.print_table();
+
+//    table.add_counterexample("aa");
+//    table.add_counterexample("aaba");
 //
 //    table.add_counterexample("ab");
-//    table.print_table();
+    table.print_table();
 //
 //
-//    DFA dfa = table.convert_to_dfa();
-//    dfa.deleteTrap();
-//    dfa.printDot();
+    DFA dfa = table.convert_to_dfa();
+    dfa.deleteTrap();
+    dfa.printDot();
 
-    std::vector<std::string> strings = generateStrings(5, alphabet);
-    for (auto el: strings) {
-        std::cout << el << std::endl;
-    }
+//    std::vector<std::string> strings = generateStrings(5, alphabet);
+//    for (auto el: strings) {
+//        std::cout << el << std::endl;
+//    }
     return 0;
 }
