@@ -3,26 +3,35 @@
 #include <string>
 #include "OracleModule.hpp"
 #include <set>
+#include <map>
 #include <unordered_map>
 #include "DFA.hpp"
 
 
 class ObservationTable {
 private:
+    std::vector<std::string> partition;
+    int limit_pump;
     std::string mode;
     OracleModule oracle;
     std::set<char> alphabet;
     std::vector<std::string> suffix;
-    std::unordered_map<std::string, std::vector<bool>> prefix;
+    std::map<std::string, std::vector<bool>> prefix;
     std::unordered_map<std::string, std::vector<bool>> extended_prefix;
     std::set<std::vector<bool>> rows;
     std::set<std::vector<bool>> extended_rows;
+    bool check_string(std::string);
     bool is_consistent(std::string&, std::string&, char&);
     bool is_closed();
     void make_closure();
     void make_consistence(std::string&, std::string&, char&);
 public:
-    ObservationTable(OracleModule oracle, std::string mode, std::set<char> alphabet): oracle(oracle), mode(mode), alphabet(alphabet) {
+    void print_table();
+    void make_consistence_and_closure();
+    ObservationTable(OracleModule oracle, std::string mode, std::set<char> alphabet,
+                     int limit_pump, std::vector<std::string> partition):
+                     oracle(oracle), mode(mode), alphabet(alphabet), limit_pump(limit_pump), partition(partition)
+    {
         if (mode != "prefix" && mode != "suffix" && mode != "infix")
             throw std::invalid_argument("Mode must be prefix, suffix or infix");
 
@@ -46,13 +55,13 @@ public:
                 ans = oracle.inPostfixLanguage(s);
             else
                 ans = oracle.inInfixLanguage(s);
-            prefix[s].push_back(ans);
-            extended_rows.insert(prefix[s]);
+            extended_prefix[s].push_back(ans);
+            extended_rows.insert(extended_prefix[s]);
         }
 
         make_consistence_and_closure();
     }
-    void make_consistence_and_closure();
+
     DFA convert_to_dfa();
     void add_counterexample(std::string);
 };

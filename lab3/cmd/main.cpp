@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "OracleModule.hpp"
+#include "ObservationTable.h"
 /*
  Правила записи грамматики:
  Нетерминалы - заглавные буквы
@@ -23,7 +24,7 @@ int main() {
     printGrammar(Oracle.postfixGrammar);
     std::cout << '\n' << "InfixGrammar" << '\n';
     printGrammar(Oracle.infixGrammar);
-    std::string word = "(a+a)";
+    std::string word = "((()))())";
     std::cout << "Candidate: " << word << '\n';
     bool ans = Oracle.inLanguage(word);
     bool pref = Oracle.inPrefixLanguage(word);
@@ -58,5 +59,18 @@ int main() {
     } else {
         std::cout << word << " ∉ Prefix(L)" << '\n';
     }
+
+    std::set<char> alphabet = {'a', 'b'};
+    std::vector<std::string> partition = {"aa", "a", "aabb", "b", "bb"};
+    ObservationTable table(Oracle, "prefix", alphabet, 5, partition);
+    table.print_table();
+
+    table.add_counterexample("aba");
+    table.print_table();
+
+
+    DFA dfa = table.convert_to_dfa();
+    dfa.deleteTrap();
+    dfa.printDot();
     return 0;
 }

@@ -14,7 +14,7 @@ public:
     LStar(OracleModule _oracle, std::set<char> _alphabet, std::vector<std::string> _partition):
     oracle(_oracle), alphabet(_alphabet), partition(_partition) {}
 
-    DFA get_language_in_alphabet(std::set<char> alphabet);
+    DFA get_language(std::string mode);
 };
 
 #endif //LAB3_LSTAR_HPP

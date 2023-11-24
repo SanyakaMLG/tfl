@@ -1,5 +1,69 @@
 #include "ObservationTable.h"
 
+bool ObservationTable::check_string(std::string s) {
+    bool ans;
+    if (mode == "prefix")
+        ans = oracle.inPrefixLanguage(s);
+    else if (mode == "suffix")
+        ans = oracle.inPostfixLanguage(s);
+    else
+        ans = oracle.inInfixLanguage(s);
+
+    if (!ans)
+        return false;
+
+
+    // more efficiently check pumping?
+    if (mode == "prefix") {
+        for (int i = 0; i < limit_pump; i++) {
+            std::string pumped = s;
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[1]);
+            }
+            pumped.append(partition[2]);
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[3]);
+            }
+            pumped.append(partition[4]);
+
+            if (!oracle.inLanguage(pumped))
+                return false;
+        }
+    } else if (mode == "suffix") {
+        for (int i = 0; i < limit_pump; i++) {
+            std::string pumped = partition[0];
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[1]);
+            }
+            pumped.append(partition[2]);
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[3]);
+            }
+            pumped.append(s);
+
+            if (!oracle.inLanguage(pumped))
+                return false;
+        }
+    } else {
+        for (int i = 0; i < limit_pump; i++) {
+            std::string pumped = partition[0];
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[1]);
+            }
+            pumped.append(s);
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[3]);
+            }
+            pumped.append(partition[4]);
+
+            if (!oracle.inLanguage(pumped))
+                return false;
+        }
+    }
+
+    return true;
+}
+
 bool ObservationTable::is_closed() {
     std::set<std::vector<bool>> diff;
     std::set_difference(extended_rows.begin(), extended_rows.end(), rows.begin(), rows.end(),
@@ -22,14 +86,8 @@ void ObservationTable::make_closure() {
                 std::string str = p.first + c;
                 std::vector<bool> tmp;
                 for (auto suf : suffix) {
-                    bool ans;
-                    if (mode == "prefix")
-                        ans = oracle.inPrefixLanguage(str);
-                    else if (mode == "suffix")
-                        ans = oracle.inPostfixLanguage(str);
-                    else
-                        ans = oracle.inInfixLanguage(str);
-                    tmp.push_back(ans);
+                    std::string with_suf = str + suf;
+                    tmp.push_back(check_string(with_suf));
                 }
                 extended_prefix[str] = tmp;
                 extended_rows.insert(tmp);
@@ -39,11 +97,13 @@ void ObservationTable::make_closure() {
 }
 
 bool ObservationTable::is_consistent(std::string &pref1, std::string &pref2, char &suf) {
-    for (auto it = begin(prefix); it != end(prefix); it++) {
-        for (auto it_2 = ++it; it_2 != end(prefix); it_2++) {
+    for (auto it = prefix.begin(); it != prefix.end(); it++) {
+        for (auto it_2 = std::next(it); it_2 != prefix.end(); it_2++) {
             if (std::equal(it->second.begin(), it->second.end(), it_2->second.begin(), it_2->second.end())) {
                 for (auto c: alphabet) {
                     std::vector<bool> vec1, vec2;
+                    pref1 = it->first;
+                    pref2 = it_2->first;
                     if (prefix.contains(it->first + c))
                         vec1 = prefix[it->first + c];
                     else
@@ -85,28 +145,15 @@ void ObservationTable::make_consistence(std::string &pref1, std::string &pref2, 
     }
 
     suffix.push_back(full_suf);
-    for (auto p: prefix) {
-        bool ans;
+
+    for (auto &p: prefix) {
         std::string str = p.first + full_suf;
-        if (mode == "prefix")
-            ans = oracle.inPrefixLanguage(str);
-        else if (mode == "suffix")
-            ans = oracle.inPostfixLanguage(str);
-        else
-            ans = oracle.inInfixLanguage(str);
-        p.second.push_back(ans);
+        p.second.push_back(check_string(str));
     }
 
-    for (auto p: extended_prefix) {
-        bool ans;
+    for (auto &p: extended_prefix) {
         std::string str = p.first + full_suf;
-        if (mode == "prefix")
-            ans = oracle.inPrefixLanguage(str);
-        else if (mode == "suffix")
-            ans = oracle.inPostfixLanguage(str);
-        else
-            ans = oracle.inInfixLanguage(str);
-        p.second.push_back(ans);
+        p.second.push_back(check_string(str));
     }
 }
 
@@ -136,6 +183,8 @@ DFA ObservationTable::convert_to_dfa() {
             mp1[p.second] = p.first;
             if (p.second[0])
                 dfa.addFinalState(count++);
+            else
+                count++;
         }
     }
 
@@ -149,28 +198,29 @@ DFA ObservationTable::convert_to_dfa() {
                         c,
                         mp[prefix[pref + c_str]]
                 );
+            } else if (extended_prefix.contains(pref + c_str)) {
+                dfa.addTransition(
+                        mp[state],
+                        c,
+                        mp[extended_prefix[pref + c_str]]
+                );
             }
         }
     }
+
+    dfa.setCount(count);
 
     return dfa;
 }
 
 void ObservationTable::add_counterexample(std::string s) {
     for (int i = 0; i < s.size(); i++) {
-        std::string sub = s.substr(s.size() - i - 1, s.size());
+        std::string sub = s.substr(0, s.size() - i);
         if (!prefix.contains(sub) && !extended_prefix.contains(sub)) {
             std::vector<bool> vec;
             for (auto suf: suffix) {
                 std::string str = sub + suf;
-                bool ans;
-                if (mode == "prefix")
-                    ans = oracle.inPrefixLanguage(str);
-                else if (mode == "suffix")
-                    ans = oracle.inPostfixLanguage(str);
-                else
-                    ans = oracle.inInfixLanguage(str);
-                vec.push_back(ans);
+                vec.push_back(check_string(str));
             }
             prefix[sub] = vec;
         } else if (!prefix.contains(sub)) {
@@ -187,18 +237,45 @@ void ObservationTable::add_counterexample(std::string s) {
             if (!prefix.contains(str) && !extended_prefix.contains(str)) {
                 std::vector<bool> vec;
                 for (auto suf: suffix) {
-                    std::string str1 = str + suf;
-                    bool ans;
-                    if (mode == "prefix")
-                        ans = oracle.inPrefixLanguage(str1);
-                    else if (mode == "suffix")
-                        ans = oracle.inPostfixLanguage(str1);
-                    else
-                        ans = oracle.inInfixLanguage(str1);
-                    vec.push_back(ans);
+                    std::string with_suf = str + suf;
+                    vec.push_back(check_string(with_suf));
                 }
                 extended_prefix[str] = vec;
             }
         }
+    }
+
+    make_consistence_and_closure();
+}
+
+void ObservationTable::print_table() {
+    printf("%10s", "");
+    for (auto suf: suffix) {
+        if (suf == "")
+            printf("%10s", "eps");
+        else
+            printf("%10s", suf.c_str());
+    }
+    std::cout << std::endl;
+
+    for (auto pref: prefix) {
+        if (pref.first == "")
+            printf("%10s", "eps");
+        else
+            printf("%10s", pref.first.c_str());
+        for (auto el: pref.second) {
+            printf("%10d", el ? 1 : 0);
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << std::endl;
+
+    for (auto pref: extended_prefix) {
+        printf("%10s", pref.first.c_str());
+        for (auto el: pref.second) {
+            printf("%10d", el ? 1 : 0);
+        }
+        std::cout << std::endl;
     }
 }

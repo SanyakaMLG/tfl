@@ -1,6 +1,1 @@
-S->T+S
-S->T
-T->F*T
-T->F
-F->(S)
-F->a
+S->aSbS|e

@@ -1,7 +1,7 @@
 #include "OracleModule.hpp"
 
 bool OracleModule::inLanguage(std::string& w) {
-    return Earley(originalGrammar, w);
+    return Earley(withoutEpsGrammar, w);
 }
 
 bool OracleModule::inReversedLanguage(std::string & w) {
