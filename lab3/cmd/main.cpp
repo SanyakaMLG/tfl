@@ -61,11 +61,11 @@ int main() {
     }
 
     std::set<char> alphabet = {'a', 'b'};
-    std::vector<std::string> partition = {"aa", "a", "aabb", "b", "bb"};
+    std::vector<std::string> partition = {"ab", "a", "aabb", "b", "aabb"};
     ObservationTable table(Oracle, "prefix", alphabet, 5, partition);
     table.print_table();
 
-    table.add_counterexample("aba");
+    table.add_counterexample("ab");
     table.print_table();
 
 

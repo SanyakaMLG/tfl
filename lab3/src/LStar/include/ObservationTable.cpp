@@ -1,6 +1,6 @@
 #include "ObservationTable.h"
 
-bool ObservationTable::check_string(std::string s) {
+bool ObservationTable::check_string(std::string &s) {
     bool ans;
     if (mode == "prefix")
         ans = oracle.inPrefixLanguage(s);
@@ -76,24 +76,39 @@ void ObservationTable::make_closure() {
         if (!rows.contains(p.second)) {
             prefix[p.first] = p.second;
             rows.insert(p.second);
-        }
-    }
-    extended_prefix.clear();
-    extended_rows.clear();
-    for (auto c: alphabet) {
-        for (auto p : prefix) {
-            if (!prefix.contains(p.first + c)) {
+            extended_prefix.erase(p.first);
+            extended_rows.erase(p.second);
+            for (auto c: alphabet) {
                 std::string str = p.first + c;
-                std::vector<bool> tmp;
-                for (auto suf : suffix) {
+                std::vector<bool> vec;
+                for (auto suf: suffix) {
                     std::string with_suf = str + suf;
-                    tmp.push_back(check_string(with_suf));
+                    vec.push_back(check_string(with_suf));
                 }
-                extended_prefix[str] = tmp;
-                extended_rows.insert(tmp);
+                extended_prefix[str] = vec;
+                extended_rows.insert(vec);
             }
+            break;
         }
     }
+
+    // ?????????????????????????
+//    extended_prefix.clear();
+//    extended_rows.clear();
+//    for (auto c: alphabet) {
+//        for (auto p : prefix) {
+//            if (!prefix.contains(p.first + c)) {
+//                std::string str = p.first + c;
+//                std::vector<bool> tmp;
+//                for (auto suf : suffix) {
+//                    std::string with_suf = str + suf;
+//                    tmp.push_back(check_string(with_suf));
+//                }
+//                extended_prefix[str] = tmp;
+//                extended_rows.insert(tmp);
+//            }
+//        }
+//    }
 }
 
 bool ObservationTable::is_consistent(std::string &pref1, std::string &pref2, char &suf) {
@@ -223,14 +238,18 @@ void ObservationTable::add_counterexample(std::string s) {
                 vec.push_back(check_string(str));
             }
             prefix[sub] = vec;
+            rows.insert(vec);
         } else if (!prefix.contains(sub)) {
             prefix[sub] = extended_prefix[sub];
+            rows.insert(extended_prefix[sub]);
+            extended_rows.erase(extended_prefix[sub]);
             extended_prefix.erase(sub);
         }
     }
 
     // how to efficiently add new strings to extended prefix?
     extended_prefix.clear();
+    extended_rows.clear();
     for (auto p: prefix) {
         for (auto c: alphabet) {
             std::string str = p.first + std::string(1, c);
@@ -241,6 +260,7 @@ void ObservationTable::add_counterexample(std::string s) {
                     vec.push_back(check_string(with_suf));
                 }
                 extended_prefix[str] = vec;
+                extended_rows.insert(vec);
             }
         }
     }

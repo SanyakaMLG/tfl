@@ -20,7 +20,7 @@ private:
     std::unordered_map<std::string, std::vector<bool>> extended_prefix;
     std::set<std::vector<bool>> rows;
     std::set<std::vector<bool>> extended_rows;
-    bool check_string(std::string);
+    bool check_string(std::string&);
     bool is_consistent(std::string&, std::string&, char&);
     bool is_closed();
     void make_closure();
@@ -37,25 +37,12 @@ public:
 
         std::string eps = "";
         suffix.push_back(eps);
-        bool ans;
-        if (mode == "prefix")
-            ans = oracle.inPrefixLanguage(eps);
-        else if (mode == "suffix")
-            ans = oracle.inPostfixLanguage(eps);
-        else
-            ans = oracle.inInfixLanguage(eps);
-        prefix[""].push_back(ans);
-        rows.insert(prefix[""]);
+        prefix[eps].push_back(check_string(eps));
+        rows.insert(prefix[eps]);
 
         for (auto c: alphabet) {
             std::string s = std::string(1, c);
-            if (mode == "prefix")
-                ans = oracle.inPrefixLanguage(s);
-            else if (mode == "suffix")
-                ans = oracle.inPostfixLanguage(s);
-            else
-                ans = oracle.inInfixLanguage(s);
-            extended_prefix[s].push_back(ans);
+            extended_prefix[s].push_back(check_string(s));
             extended_rows.insert(extended_prefix[s]);
         }
 
