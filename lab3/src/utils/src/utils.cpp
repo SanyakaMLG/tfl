@@ -230,3 +230,17 @@ void splitRight(std::set<std::vector<std::string>> &rule, std::string &right) {
     }
     rule.insert(v);
 }
+
+std::vector<std::string> generateStrings(int length, std::set<char> &alphabet) {
+    std::vector<std::string> res = {""};
+    for (int i = 0; i < length; i++) {
+        std::vector<std::string> tmp;
+        for (auto str: res) {
+            for (auto c: alphabet) {
+                tmp.push_back(str + c);
+            }
+        }
+        res = tmp;
+    }
+    return res;
+}

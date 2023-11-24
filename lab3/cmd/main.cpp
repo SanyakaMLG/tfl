@@ -63,14 +63,19 @@ int main() {
     std::set<char> alphabet = {'a', 'b'};
     std::vector<std::string> partition = {"ab", "a", "aabb", "b", "aabb"};
     ObservationTable table(Oracle, "prefix", alphabet, 5, partition);
-    table.print_table();
+//    table.print_table();
+//
+//    table.add_counterexample("ab");
+//    table.print_table();
+//
+//
+//    DFA dfa = table.convert_to_dfa();
+//    dfa.deleteTrap();
+//    dfa.printDot();
 
-    table.add_counterexample("ab");
-    table.print_table();
-
-
-    DFA dfa = table.convert_to_dfa();
-    dfa.deleteTrap();
-    dfa.printDot();
+    std::vector<std::string> strings = generateStrings(5, alphabet);
+    for (auto el: strings) {
+        std::cout << el << std::endl;
+    }
     return 0;
 }
