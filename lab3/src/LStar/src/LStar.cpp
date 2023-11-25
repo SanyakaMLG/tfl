@@ -23,10 +23,11 @@ std::set<std::set<char>> including_alphabet(std::set<char> full_alphabet, std::s
 
 
 DFA LStar::get_language(std::string mode) {
-    int max_dfa_count = partition[0].length() + reg_limit;
+    int idx = mode == "prefix" ? 0 : mode == "suffix" ? 4 : 2;
+    int max_dfa_count = partition[idx].length() + reg_limit;
     std::set<char> alph;
     std::set<std::set<char>> blocked;
-    for (auto c: partition[0])
+    for (auto c: partition[idx])
         alph.insert(c);
     DFA dfa = get_language_in_alphabet(mode, alph);
 
@@ -45,6 +46,8 @@ DFA LStar::get_language(std::string mode) {
         flag = false;
         for (auto c: alphabet) {
             std::set<char> tmp_alphabet = alph;
+            if (tmp_alphabet.contains(c))
+                continue;
             tmp_alphabet.insert(c);
             if (!blocked.contains(tmp_alphabet)) {
                 dfa = get_language_in_alphabet(mode, tmp_alphabet);
@@ -68,6 +71,9 @@ DFA LStar::get_language(std::string mode) {
 }
 
 DFA LStar::get_language_in_alphabet(std::string mode, std::set<char> &_alphabet) {
+    if (_alphabet.contains('a') && _alphabet.contains('b')) {
+        int k = 15421;
+    }
     ObservationTable table(oracle, mode, _alphabet, limit_pump, partition);
     DFA dfa = table.convert_to_dfa();
     dfa.deleteTrap();
@@ -82,13 +88,17 @@ DFA LStar::get_language_in_alphabet(std::string mode, std::set<char> &_alphabet)
     }
 
     bool in_dfa, in_oracle;
-    for (i = 0; i < strings.size(); i++) {
+    int end;
+
+    if (_alphabet.size() == 1)
+        end = 15;
+    else
+        end = strings.size();
+
+    for (i = 0; i < end; i++) {
         in_dfa = dfa.checkString(strings[i]);
         in_oracle = table.check_string(strings[i]);
-        if (in_dfa && !in_oracle) {
-            dfa.clear();
-            return dfa;
-        } else if (in_oracle && !in_dfa) {
+        if (in_oracle && !in_dfa || in_dfa && !in_oracle) {
             table.add_counterexample(strings[i]);
             dfa = table.convert_to_dfa();
             dfa.deleteTrap();

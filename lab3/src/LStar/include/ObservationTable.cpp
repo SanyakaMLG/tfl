@@ -160,15 +160,19 @@ void ObservationTable::make_consistence(std::string &pref1, std::string &pref2, 
     }
 
     suffix.push_back(full_suf);
+    rows.clear();
+    extended_rows.clear();
 
     for (auto &p: prefix) {
         std::string str = p.first + full_suf;
         p.second.push_back(check_string(str));
+        rows.insert(p.second);
     }
 
     for (auto &p: extended_prefix) {
         std::string str = p.first + full_suf;
         p.second.push_back(check_string(str));
+        extended_rows.insert(p.second);
     }
 }
 
@@ -229,6 +233,9 @@ DFA ObservationTable::convert_to_dfa() {
 }
 
 void ObservationTable::add_counterexample(std::string s) {
+    if (s == "baa") {
+        int qwe = 123;
+    }
     for (int i = 0; i < s.size(); i++) {
         std::string sub = s.substr(0, s.size() - i);
         if (!prefix.contains(sub) && !extended_prefix.contains(sub)) {

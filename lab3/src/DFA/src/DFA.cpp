@@ -48,6 +48,11 @@ void DFA::deleteTrap() {
     std::erase_if(transitions, [&](std::pair<std::pair<int, char>, int> x) -> bool {
         return to_delete.contains(x.first.first) || to_delete.contains(x.second);
     });
+
+    transitions_map.clear();
+    for (auto trans: transitions) {
+        transitions_map[trans.first.first][trans.first.second] = trans.second;
+    }
 }
 
 void DFA::printDot() {
