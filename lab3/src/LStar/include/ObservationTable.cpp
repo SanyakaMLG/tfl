@@ -233,9 +233,6 @@ DFA ObservationTable::convert_to_dfa() {
 }
 
 void ObservationTable::add_counterexample(std::string s) {
-    if (s == "baa") {
-        int qwe = 123;
-    }
     for (int i = 0; i < s.size(); i++) {
         std::string sub = s.substr(0, s.size() - i);
         if (!prefix.contains(sub) && !extended_prefix.contains(sub)) {

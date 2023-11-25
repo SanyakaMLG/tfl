@@ -1,5 +1,6 @@
 #include "DFA.hpp"
 #include <iostream>
+#include <random>
 
 void DFA::addFinalState(int state) {
     final_states.insert(state);
@@ -92,4 +93,40 @@ bool DFA::checkString(std::string &str) {
     }
 
     return final_states.contains(cur_state);
+}
+
+void DFA::buildTransitionsMap() {
+    transitions_map.clear();
+    for (auto &trans: transitions) {
+        transitions_map[trans.first.first][trans.first.second] = trans.second;
+    }
+}
+
+template<typename KeyType, typename ValueType>
+std::pair<KeyType, ValueType> randomChooseFromMap(const std::unordered_map<KeyType, ValueType>& myMap) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, myMap.size() - 1);
+    int randomIndex = dis(gen);
+    auto it = myMap.begin();
+    std::advance(it, randomIndex);
+    return *it;
+}
+
+std::string DFA::getRandomString() {
+    int cur_state = 0;
+    std::string res;
+    while (true) {
+        if (transitions_map[cur_state].empty() || final_states.contains(cur_state) && std::rand() % 100 == 95)
+            break;
+
+        auto pair = randomChooseFromMap(transitions_map[cur_state]);
+        res.append(std::string(1, pair.first));
+        cur_state = pair.second;
+    }
+    return res;
+}
+
+std::set<char> DFA::getAlphabet() {
+    return alphabet;
 }

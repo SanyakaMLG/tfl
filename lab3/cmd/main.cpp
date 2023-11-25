@@ -59,6 +59,7 @@ int main() {
     }
 
     std::set<char> alphabet = {'a', 'b'};
+    std::set<char> a_alph = {'a'};
     std::vector<std::string> partition = {"aa", "a", "aabb", "b", "bb"};
 
     LStar algo(Oracle, alphabet, partition, 5, 2, 1000);
@@ -75,9 +76,16 @@ int main() {
 
     suf.printDot();
 
+    auto counter = algo.get_counter_DFAs(prefix, suf);
+
+    if (counter.empty())
+        std::cout << "counters is empty";
+
 //
-//    ObservationTable table(Oracle, "prefix", alphabet, 5, partition);
+//    ObservationTable table(Oracle, "infix", a_alph, 5, partition);
 //    table.print_table();
+//
+//    table.convert_to_dfa().printDot();
 //    table.add_counterexample("aa");
 //    table.print_table();
 //    table.add_counterexample("baa");

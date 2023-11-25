@@ -4,6 +4,7 @@
 #include "DFA.hpp"
 #include "ObservationTable.h"
 #include <unordered_map>
+#include <unordered_set>
 
 class LStar {
 private:
@@ -21,6 +22,7 @@ public:
     limit_pump(_limit_pump), reg_limit(_reg_limit), eq_limit(_eq_limit) {}
 
     DFA get_language(std::string mode);
+    std::vector<DFA> get_counter_DFAs(DFA&, DFA&);
 };
 
 #endif //LAB3_LSTAR_HPP

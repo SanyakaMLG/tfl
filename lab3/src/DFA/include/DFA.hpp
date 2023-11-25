@@ -22,6 +22,9 @@ public:
     void printDot();
     int getSize();
     void clear();
+    void buildTransitionsMap();
+    std::set<char> getAlphabet();
+    std::string getRandomString();
 };
 
 #endif //LAB3_DFA_HPP
