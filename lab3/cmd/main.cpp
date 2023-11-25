@@ -59,14 +59,22 @@ int main() {
     }
 
     std::set<char> alphabet = {'a', 'b'};
-    std::set<char> a_alph = {'a'};
     std::vector<std::string> partition = {"aa", "a", "aabb", "b", "bb"};
 
     LStar algo(Oracle, alphabet, partition, 5, 2, 1000);
 
-    DFA dfa = algo.get_language("prefix");
+    DFA prefix = algo.get_language("prefix");
 
-    dfa.printDot();
+    prefix.printDot();
+
+    DFA inf = algo.get_language("infix");
+
+    inf.printDot();
+
+    DFA suf = algo.get_language("suffix");
+
+    suf.printDot();
+
 //
 //    ObservationTable table(Oracle, "prefix", alphabet, 5, partition);
 //    table.print_table();
