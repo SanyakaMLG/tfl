@@ -12,8 +12,6 @@ bool ObservationTable::check_string(std::string &s) {
     if (!ans)
         return false;
 
-
-    // more efficiently check pumping?
     if (mode == "prefix") {
         for (int i = 0; i < limit_pump; i++) {
             std::string pumped = s;
@@ -91,24 +89,6 @@ void ObservationTable::make_closure() {
             break;
         }
     }
-
-    // ?????????????????????????
-//    extended_prefix.clear();
-//    extended_rows.clear();
-//    for (auto c: alphabet) {
-//        for (auto p : prefix) {
-//            if (!prefix.contains(p.first + c)) {
-//                std::string str = p.first + c;
-//                std::vector<bool> tmp;
-//                for (auto suf : suffix) {
-//                    std::string with_suf = str + suf;
-//                    tmp.push_back(check_string(with_suf));
-//                }
-//                extended_prefix[str] = tmp;
-//                extended_rows.insert(tmp);
-//            }
-//        }
-//    }
 }
 
 bool ObservationTable::is_consistent(std::string &pref1, std::string &pref2, char &suf) {
@@ -235,6 +215,8 @@ DFA ObservationTable::convert_to_dfa() {
 void ObservationTable::add_counterexample(std::string s) {
     for (int i = 0; i < s.size(); i++) {
         std::string sub = s.substr(0, s.size() - i);
+        if (prefix.contains(sub))
+            continue;
         if (!prefix.contains(sub) && !extended_prefix.contains(sub)) {
             std::vector<bool> vec;
             for (auto suf: suffix) {
@@ -249,14 +231,26 @@ void ObservationTable::add_counterexample(std::string s) {
             extended_rows.erase(extended_prefix[sub]);
             extended_prefix.erase(sub);
         }
+//        for (auto c: alphabet) {
+//            std::string str = sub + c;
+//            if (!extended_prefix.contains(str)) {
+//                std::vector<bool> vec;
+//                for (auto suf: suffix) {
+//                    std::string with_suf = str + suf;
+//                    vec.push_back(check_string(str));
+//                }
+//                extended_prefix[str] = vec;
+//                extended_rows.insert(vec);
+//            }
+//        }
     }
 
-    // how to efficiently add new strings to extended prefix?
+    // more efficiently add new strings to extended prefix?
     extended_prefix.clear();
     extended_rows.clear();
     for (auto p: prefix) {
         for (auto c: alphabet) {
-            std::string str = p.first + std::string(1, c);
+            std::string str = p.first + c;
             if (!prefix.contains(str) && !extended_prefix.contains(str)) {
                 std::vector<bool> vec;
                 for (auto suf: suffix) {

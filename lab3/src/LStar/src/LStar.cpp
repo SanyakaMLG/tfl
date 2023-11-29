@@ -42,7 +42,7 @@ std::set<std::set<char>, cmpBySetSize> get_supersets(const std::set<char> &set, 
     for (int i = 0; i < (1 << n); i++) {
         std::set<char> subset;
         for (int j = 0; j < n; j++) {
-            if (i & j) {
+            if (i & (1 << j)) {
                 subset.insert(elements[j]);
             }
         }
