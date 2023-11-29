@@ -34,7 +34,6 @@ int main() {
     } else {
         std::cout << word << " ∉ Infix(L)" << '\n';
     }
-
     if (postfix) {
         std::cout << word << " ∈ Postfix(L)" << '\n';
     } else {
@@ -79,8 +78,9 @@ int main() {
     auto counter = algo.get_counter_DFAs(prefix, suf);
 
     if (counter.empty())
-        std::cout << "counters is empty";
-
+        std::cout << "counters is empty\n";
+    auto product = intersect(inf, suf);
+    product.printDot();
 //
 //    ObservationTable table(Oracle, "infix", a_alph, 5, partition);
 //    table.print_table();

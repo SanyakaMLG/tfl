@@ -1,6 +1,7 @@
 #include "DFA.hpp"
 #include <iostream>
 #include <random>
+#include <map>
 
 void DFA::addFinalState(int state) {
     final_states.insert(state);
@@ -60,7 +61,7 @@ void DFA::printDot() {
     std::string res = "digraph G {\nrankdir=\"LR\";\n";
     for (auto trans: transitions) {
         res.append(std::to_string(trans.first.first) + " -> " +
-                        std::to_string(trans.second) + " [label=\"" + trans.first.second + "\"];\n");
+                   std::to_string(trans.second) + " [label=\"" + trans.first.second + "\"];\n");
     }
 
     for (int i = 0; i < count_states; i++) {
@@ -103,7 +104,7 @@ void DFA::buildTransitionsMap() {
 }
 
 template<typename KeyType, typename ValueType>
-std::pair<KeyType, ValueType> randomChooseFromMap(const std::unordered_map<KeyType, ValueType>& myMap) {
+std::pair<KeyType, ValueType> randomChooseFromMap(const std::unordered_map<KeyType, ValueType> &myMap) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dis(0, myMap.size() - 1);
@@ -129,4 +130,67 @@ std::string DFA::getRandomString() {
 
 std::set<char> DFA::getAlphabet() {
     return alphabet;
+}
+
+std::set<int> DFA::getFinalStates() {
+    return final_states;
+}
+
+static std::vector<std::vector<int>> mapping(int size1, int size2){
+    static std::vector<std::vector<int>> ans(size1, std::vector<int>(size2, 0));
+    int k = 0;
+    for (int i = 0; i < size1;++i){
+        for(int j = 0; j < size2; ++j){
+            ans[i][j] = k++;
+        }
+    }
+    return ans;
+}
+
+
+DFA intersect(DFA &dfa1, DFA &dfa2) {
+    std::set<char> intersection;
+    auto alphabet1 = dfa1.getAlphabet();
+    auto alphabet2 = dfa2.getAlphabet();
+    std::set_intersection(alphabet1.begin(),
+                          alphabet1.end(),
+                          alphabet2.begin(),
+                          alphabet2.end(),
+                          std::inserter(intersection, intersection.begin()));
+    DFA product = DFA(intersection);
+    std::map<std::pair<int,int>, std::map<char, std::pair<int, int>>> intersection_map;
+    dfa1.buildTransitionsMap();
+    dfa2.buildTransitionsMap();
+    for(int i = 0; i <dfa1.getSize(); ++i){
+        for(int j = 0; j <dfa2.getSize(); ++j){
+            auto state1 = dfa1.transitions_map[i];
+            auto state2 = dfa2.transitions_map[j];
+            for(auto item: state1){
+                if(state2.contains(item.first)){
+                    intersection_map[{i,j}][item.first] = {item.second, state2[item.first]};
+                }
+            }
+            for(auto item: state2){
+                if(state1.contains(item.first)){
+                    intersection_map[{i,j}][item.first] = {state1[item.first], item.second};
+                }
+            }
+        }
+    }
+    auto map = mapping(dfa1.getSize(), dfa2.getSize());
+    for(const auto& item: intersection_map){
+        for (auto by:item.second){
+            product.addTransition(map[item.first.first][item.first.second],
+                                  by.first, map[by.second.first][by.second.second]);
+        }
+    }
+    auto final_states1 = dfa1.getFinalStates();
+    auto final_states2 = dfa2.getFinalStates();
+    for(int states1: final_states1){
+        for(int states2: final_states2){
+                product.addFinalState(map[states1][states2]);
+        }
+    }
+    product.buildTransitionsMap();
+    return product;
 }
