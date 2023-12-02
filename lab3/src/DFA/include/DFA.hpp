@@ -19,6 +19,7 @@ public:
     void addFinalState(int state);
     void setCount(int count);
     void deleteTrap();
+    DFA invert();
     void printDot();
     int getSize();
     void clear();

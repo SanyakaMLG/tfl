@@ -147,3 +147,17 @@ bool Earley(Grammar grammar, std::string &word) {
     bool ans = states[word.length()]["$"].contains(std::make_tuple("[ZERO]",s_vector (1,old_state),1, 0));
     return ans;
 }
+
+std::set<char> Grammar::getAlphabet() {
+    std::set<char> alphabet;
+    for(const auto& rules:grammar){
+        for(const auto& rule: rules.second){
+            for(auto elem: rule){
+                if (islower(elem[0])){
+                    alphabet.insert(elem[0]);
+                }
+            }
+        }
+    }
+    return alphabet;
+}

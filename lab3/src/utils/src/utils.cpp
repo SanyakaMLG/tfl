@@ -244,3 +244,8 @@ std::vector<std::string> generateStrings(int length, std::set<char> &alphabet) {
     }
     return res;
 }
+
+
+std::set<char> getAlphabet(Grammar& grammar){
+
+}

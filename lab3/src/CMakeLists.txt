@@ -6,7 +6,7 @@ add_subdirectory(utils)
 add_subdirectory(OracleModule)
 add_subdirectory(DFA)
 add_subdirectory(LStar)
-
+add_subdirectory(ProgramOp)
 
 set(libEarley_LIB ${libEarley_LIB} PARENT_SCOPE)
 set(libEarley_INCLUDE_DIRS ${libEarley_INCLUDE_DIRS} PARENT_SCOPE)
@@ -22,5 +22,8 @@ set(libDFA_INCLUDE_DIRS ${libDFA_INCLUDE_DIRS} PARENT_SCOPE)
 
 set(libLStar_LIB ${libLStar_LIB} PARENT_SCOPE)
 set(libLStar_INCLUDE_DIRS ${libLStar_INCLUDE_DIRS} PARENT_SCOPE)
+
+set(libProgramOp_LIB ${libProgramOp_LIB} PARENT_SCOPE)
+set(libProgramOp_INCLUDE_DIRS ${libProgramOp_INCLUDE_DIRS} PARENT_SCOPE)
 
 

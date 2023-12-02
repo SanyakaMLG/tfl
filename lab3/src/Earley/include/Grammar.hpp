@@ -15,5 +15,6 @@ class Grammar{
 public:
     std::string ZeroState;
     grammar_t grammar;
+    std::set<char> getAlphabet();
 };
 #endif //LAB3_GRAMMAR_HPP

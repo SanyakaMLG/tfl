@@ -33,5 +33,4 @@ std::set<std::string> getEpsRules(Grammar &grammar);
 Grammar deleteEpsRules(Grammar &grammar);
 
 std::vector<std::string> generateStrings(int length, std::set<char> &alphabet);
-
 #endif //LAB3_UTILS_HPP

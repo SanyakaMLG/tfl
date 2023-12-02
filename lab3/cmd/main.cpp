@@ -1,28 +1,14 @@
 #include <iostream>
+#include <sstream>
 
 #include "OracleModule.hpp"
 #include "LStar.hpp"
+#include "ProgramOptions.hpp"
 /*
  Правила записи грамматики:
  Нетерминалы - заглавные буквы
- Терминалы - строчные или другие символы(за исключением специальных)*/
-
-int main() {
-    std::string grammarPath("grammar");
-    auto Oracle = OracleModule(grammarPath);
-    std::cout << "OriginalGrammar" << '\n';
-    printGrammar(Oracle.originalGrammar);
-    std::cout << "OriginalGrammar DEl_EPS" << '\n';
-    printGrammar(Oracle.withoutEpsGrammar);
-    std::cout << '\n' << "PrefixGrammar" << '\n';
-    printGrammar(Oracle.prefixGrammar);
-    std::cout << '\n' << "ReversedGrammar" << '\n';
-    printGrammar(Oracle.reversedGrammar);
-    std::cout << '\n' << "PostfixGrammar" << '\n';
-    printGrammar(Oracle.postfixGrammar);
-    std::cout << '\n' << "InfixGrammar" << '\n';
-    printGrammar(Oracle.infixGrammar);
-    std::string word = "((()))())";
+ Терминалы - строчные буквы или другие символы(за исключением специальных)*/
+void belongs(OracleModule &Oracle, std::string &word){
     std::cout << "Candidate: " << word << '\n';
     bool ans = Oracle.inLanguage(word);
     bool pref = Oracle.inPrefixLanguage(word);
@@ -39,13 +25,11 @@ int main() {
     } else {
         std::cout << word << " ∉ Postfix(L)" << '\n';
     }
-
     if (reversed) {
         std::cout << word << " ∈ Reversed(L)" << '\n';
     } else {
         std::cout << word << " ∉ Reversed(L)" << '\n';
     }
-
     if (ans) {
         std::cout << word << " ∈ L" << '\n';
     } else {
@@ -56,31 +40,99 @@ int main() {
     } else {
         std::cout << word << " ∉ Prefix(L)" << '\n';
     }
+}
 
-    std::set<char> alphabet = {'a', 'b'};
-    std::set<char> a_alph = {'a'};
-    std::vector<std::string> partition = {"aa", "a", "aabb", "b", "bb"};
 
-    LStar algo(Oracle, alphabet, partition, 5, 2, 1000);
+void printGrammars(OracleModule &Oracle){
+    std::cout << "OriginalGrammar" << '\n';
+    printGrammar(Oracle.originalGrammar);
+    std::cout << "OriginalGrammar DEl_EPS" << '\n';
+    printGrammar(Oracle.withoutEpsGrammar);
+    std::cout << '\n' << "PrefixGrammar" << '\n';
+    printGrammar(Oracle.prefixGrammar);
+    std::cout << '\n' << "ReversedGrammar" << '\n';
+    printGrammar(Oracle.reversedGrammar);
+    std::cout << '\n' << "PostfixGrammar" << '\n';
+    printGrammar(Oracle.postfixGrammar);
+    std::cout << '\n' << "InfixGrammar" << '\n';
+    printGrammar(Oracle.infixGrammar);
+}
 
-    DFA prefix = algo.get_language("prefix");
+std::vector<std::string> splitString(std::string &str){
+    std::string part;
+    std::vector<std::string> ans;
+    std::stringstream splitable(str);
+    while (std::getline(splitable, part,' ')){
+        ans.push_back(part);
+    }
+    return ans;
+}
 
-    prefix.printDot();
+std::string concat(std::vector<std::string>& partition){
+    std::string ans;
+    for(const auto& part:partition){
+        ans += part;
+    }
+    return ans;
+}
 
-    DFA inf = algo.get_language("infix");
 
-    inf.printDot();
+void test(OracleModule& Oracle, std::string& path){
+    std::string acc;
+    std::ifstream file(path);
+    std::vector<std::string> partition;
+    std::set<char> alphabet = Oracle.withoutEpsGrammar.getAlphabet();
+    while(std::getline(file, acc)){
+       partition = splitString(acc);
+       if(ProgramOptions::log()){
+            std::string word = concat(partition);
+            belongs(Oracle, word);
+       }
 
-    DFA suf = algo.get_language("suffix");
+        LStar algo(Oracle, alphabet, partition, 5, 2, 1000);
 
-    suf.printDot();
+        DFA prefix = algo.get_language("prefix");
 
-    auto counter = algo.get_counter_DFAs(prefix, suf);
+        DFA inf = algo.get_language("infix");
+        std::cout<<"Infix Language:\n";
+        inf.printDot();
 
-    if (counter.empty())
-        std::cout << "counters is empty\n";
-    auto product = intersect(inf, suf);
-    product.printDot();
+        DFA suf = algo.get_language("suffix");
+
+        auto counter = algo.get_counter_DFAs(prefix, suf);
+
+        if (counter.empty()){
+            std::cout<<"Prefix Language:\n";
+            prefix.printDot();
+            std::cout<<"Suffix Language:\n";
+            suf.printDot();
+        }else{
+            auto invertedCounterPrefix = counter[0].invert();
+            auto invertedCounterSuffix = counter[1].invert();
+            auto prefixIntersect = intersect(prefix,invertedCounterPrefix);
+            auto suffixIntersect = intersect(suf, invertedCounterSuffix);
+            std::cout<<"Prefix Language:\n";
+            prefixIntersect.printDot();
+            std::cout<<"Suffix Language:\n";
+            suffixIntersect.printDot();
+        }
+    }
+}
+
+
+int main(int argc, char* argv[]) {
+    ProgramOptions::parse(argc, argv);
+    std::string grammarPath("grammar");
+    std::cout<<"making oracles\n";
+    auto Oracle = OracleModule(grammarPath);
+    if (ProgramOptions::log()) {
+        printGrammars(Oracle);
+    }
+    std::vector<std::string> partition;
+    if(ProgramOptions::need_file()) {
+        std::string path(ProgramOptions::str());
+        test(Oracle, path);
+    }
 //
 //    ObservationTable table(Oracle, "infix", a_alph, 5, partition);
 //    table.print_table();

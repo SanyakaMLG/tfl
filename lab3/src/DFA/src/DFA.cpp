@@ -3,6 +3,7 @@
 #include <random>
 #include <map>
 
+#define TRAP 1000
 void DFA::addFinalState(int state) {
     final_states.insert(state);
 }
@@ -136,6 +137,31 @@ std::set<int> DFA::getFinalStates() {
     return final_states;
 }
 
+DFA returnTrap(DFA normDFA) {
+    DFA dfa = normDFA;
+    dfa.buildTransitionsMap();
+    auto alphabet = dfa.getAlphabet();
+    for(auto state: dfa.transitions_map){
+        for(char letter: alphabet){
+            if (!state.second.contains(letter)){
+                dfa.addTransition(state.first, letter, TRAP);
+            }
+        }
+    }
+    dfa.buildTransitionsMap();
+    return dfa;
+}
+ DFA DFA::invert(){
+    DFA dfa = returnTrap(*this);
+    DFA invertedDFA(dfa.getAlphabet());
+    for(auto state: dfa.transitions_map){
+        if(state.first > 0 && !final_states.contains(state.first)){
+               invertedDFA.final_states.insert(state.first);
+        }
+    }
+    invertedDFA.deleteTrap();
+     return invertedDFA;
+}
 static std::vector<std::vector<int>> mapping(int size1, int size2){
     static std::vector<std::vector<int>> ans(size1, std::vector<int>(size2, 0));
     int k = 0;
