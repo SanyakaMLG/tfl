@@ -1,4 +1,2 @@
-S -> T + S|T - S | T
-T->F * T |F / T|F
-F-> -K | K
-K -> n|(S)
+S -> aS|T
+T -> aTb|e

@@ -126,31 +126,46 @@ DFA LStar::get_language_in_alphabet(std::string mode, std::set<char> &_alphabet)
 
 std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
     std::set<std::tuple<std::string, std::string>> counter_examples;
+    std::set<std::string> checked_prefix, checked_suffix;
     std::vector<DFA> res;
 
-    for (int i = 0; i < 200; i++) {
+    for (int i = 0; i < 35; i++) {
         auto pref = prefix.getRandomString();
-        for (int j = 0; j < 200; j++) {
+
+        if (checked_prefix.contains(pref))
+            continue;
+        else
+            checked_prefix.insert(pref);
+
+        for (int j = 0; j < 35; j++) {
             auto suf = suffix.getRandomString();
 
-            bool is_counter = false;
+            if (checked_suffix.contains(suf))
+                continue;
+            else
+                checked_suffix.insert(suf);
+
             for (int pump = 0; pump < limit_pump; pump++) {
                 std::string to_check = pref;
                 for (int k = 0; k < pump; k++)
-                    to_check.append(partition[2]);
-                to_check.append(partition[3]);
+                    to_check.append(partition[1]);
+                to_check.append(partition[2]);
                 for (int k = 0; k < pump; k++)
-                    to_check.append(partition[4]);
+                    to_check.append(partition[3]);
                 to_check.append(suf);
                 if (!oracle.inLanguage(to_check)) {
-                    is_counter = true;
+                    counter_examples.insert(std::make_tuple(pref, suf));
                     break;
                 }
             }
-
-            if (is_counter)
-                counter_examples.insert(std::make_tuple(pref, suf));
         }
+
+        checked_suffix.clear();
+    }
+
+    std::cout << "counterexamples:\n";
+    for (auto &ex: counter_examples) {
+        std::cout << std::get<0>(ex) << "   " << std::get<1>(ex) << std::endl;
     }
 
     auto pref_alphabet = prefix.getAlphabet();

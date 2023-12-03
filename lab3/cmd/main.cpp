@@ -65,6 +65,10 @@ std::vector<std::string> splitString(std::string &str){
     while (std::getline(splitable, part,' ')){
         ans.push_back(part);
     }
+    for (auto &p: ans) {
+        if (p == "(eps)")
+            p = "";
+    }
     return ans;
 }
 
@@ -89,17 +93,25 @@ void test(OracleModule& Oracle, std::string& path){
             belongs(Oracle, word);
        }
 
-        LStar algo(Oracle, alphabet, partition, 5, 2, 1000);
+        LStar algo(Oracle, alphabet, partition, 5, 3, 200);
 
         DFA prefix = algo.get_language("prefix");
+        std::cout<<"Prefix Language:\n";
+        prefix.printDot();
 
         DFA inf = algo.get_language("infix");
         std::cout<<"Infix Language:\n";
         inf.printDot();
 
         DFA suf = algo.get_language("suffix");
+        std::cout<<"Suffix Language:\n";
+        suf.printDot();
 
         auto counter = algo.get_counter_DFAs(prefix, suf);
+//        std::cout << "Counter prefix:\n";
+//        counter[0].printDot();
+//        std::cout << "Counter suffix:\n";
+//        counter[1].printDot();
 
         if (counter.empty()){
             std::cout<<"Prefix Language:\n";

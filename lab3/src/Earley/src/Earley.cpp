@@ -153,7 +153,7 @@ std::set<char> Grammar::getAlphabet() {
     for(const auto& rules:grammar){
         for(const auto& rule: rules.second){
             for(auto elem: rule){
-                if (islower(elem[0])){
+                if (islower(elem[0]) && elem[0] != 'e'){
                     alphabet.insert(elem[0]);
                 }
             }

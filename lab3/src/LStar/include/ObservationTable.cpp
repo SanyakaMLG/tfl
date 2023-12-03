@@ -22,14 +22,13 @@ bool ObservationTable::check_string(std::string &s) {
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[3]);
             }
-            pumped.append(partition[4]);
 
-            if (!oracle.inLanguage(pumped))
+            if (!oracle.inPrefixLanguage(pumped))
                 return false;
         }
     } else if (mode == "suffix") {
         for (int i = 0; i < limit_pump; i++) {
-            std::string pumped = partition[0];
+            std::string pumped = "";
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
             }
@@ -39,12 +38,12 @@ bool ObservationTable::check_string(std::string &s) {
             }
             pumped.append(s);
 
-            if (!oracle.inLanguage(pumped))
+            if (!oracle.inPostfixLanguage(pumped))
                 return false;
         }
     } else {
         for (int i = 0; i < limit_pump; i++) {
-            std::string pumped = partition[0];
+            std::string pumped = "";
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
             }
@@ -52,9 +51,8 @@ bool ObservationTable::check_string(std::string &s) {
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[3]);
             }
-            pumped.append(partition[4]);
 
-            if (!oracle.inLanguage(pumped))
+            if (!oracle.inInfixLanguage(pumped))
                 return false;
         }
     }

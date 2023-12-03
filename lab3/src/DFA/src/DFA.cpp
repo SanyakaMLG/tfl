@@ -119,7 +119,7 @@ std::string DFA::getRandomString() {
     int cur_state = 0;
     std::string res;
     while (true) {
-        if (transitions_map[cur_state].empty() || final_states.contains(cur_state) && std::rand() % 100 == 95)
+        if (transitions_map[cur_state].empty() || final_states.contains(cur_state) && std::rand() % 100 >= 90)
             break;
 
         auto pair = randomChooseFromMap(transitions_map[cur_state]);
