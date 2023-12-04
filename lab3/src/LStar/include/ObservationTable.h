@@ -9,7 +9,7 @@
 
 
 class ObservationTable {
-private:
+protected:
     std::vector<std::string> partition;
     int limit_pump;
     std::string mode;
@@ -32,7 +32,7 @@ public:
                      int limit_pump, std::vector<std::string> partition):
                      oracle(oracle), mode(mode), alphabet(alphabet), limit_pump(limit_pump), partition(partition)
     {
-        if (mode != "prefix" && mode != "suffix" && mode != "infix")
+        if (mode != "prefix" && mode != "suffix" && mode != "infix" && mode != "antiprefix" && mode != "antisuffix")
             throw std::invalid_argument("Mode must be prefix, suffix or infix");
 
         std::string eps = "";
@@ -51,6 +51,17 @@ public:
 
     DFA convert_to_dfa();
     void add_counterexample(std::string);
+};
+
+class CounterTable: public ObservationTable {
+private:
+    std::set<std::string> examples; // C_k
+public:
+    CounterTable(OracleModule oracle, std::string mode, std::set<char> alphabet,
+                 int limit_pump, std::vector<std::string> partition, std::set<std::string> examples):
+            ObservationTable(oracle, mode, alphabet, limit_pump, partition), examples(examples) {};
+
+    bool check_string(std::string&)
 };
 
 

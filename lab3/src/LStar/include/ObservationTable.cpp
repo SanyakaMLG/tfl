@@ -2,9 +2,9 @@
 
 bool ObservationTable::check_string(std::string &s) {
     bool ans;
-    if (mode == "prefix")
+    if (mode == "prefix" || mode == "antisuffix")
         ans = oracle.inPrefixLanguage(s);
-    else if (mode == "suffix")
+    else if (mode == "suffix" || mode == "antiprefix")
         ans = oracle.inPostfixLanguage(s);
     else
         ans = oracle.inInfixLanguage(s);
@@ -41,7 +41,7 @@ bool ObservationTable::check_string(std::string &s) {
             if (!oracle.inPostfixLanguage(pumped))
                 return false;
         }
-    } else {
+    } else if (mode == "infix") {
         for (int i = 0; i < limit_pump; i++) {
             std::string pumped = "";
             for (int j = 0; j < i; j++) {
@@ -53,6 +53,35 @@ bool ObservationTable::check_string(std::string &s) {
             }
 
             if (!oracle.inInfixLanguage(pumped))
+                return false;
+        }
+    } else if (mode == "antiprefix") {
+        for (int i = 0; i < limit_pump; i++) {
+            std::string pumped = "";
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[1]);
+            }
+            pumped.append(partition[2]);
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[3]);
+            }
+            pumped.append(s);
+
+            if (oracle.inPostfixLanguage(pumped))
+                return false;
+        }
+    } else {
+        for (int i = 0; i < limit_pump; i++) {
+            std::string pumped = s;
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[1]);
+            }
+            pumped.append(partition[2]);
+            for (int j = 0; j < i; j++) {
+                pumped.append(partition[3]);
+            }
+
+            if (oracle.inPrefixLanguage(pumped))
                 return false;
         }
     }
@@ -294,4 +323,40 @@ void ObservationTable::print_table() {
         }
         std::cout << std::endl;
     }
+}
+
+bool CounterTable::check_string(std::string &s) {
+    if (mode == "prefix") {
+        for (auto &ex: examples) {
+            for (int i = 0; i < limit_pump; i++) {
+                std::string to_check = s;
+                for (int j = 0; j < i; j++)
+                    to_check.append(partition[1]);
+                to_check.append(partition[2]);
+                for (int j = 0; j < i; j++)
+                    to_check.append(partition[3]);
+                to_check.append(ex);
+
+                if (oracle.inLanguage(to_check))
+                    return false;
+            }
+        }
+    } else {
+        for (auto &ex: examples) {
+            for (int i = 0; i < limit_pump; i++) {
+                std::string to_check = ex;
+                for (int j = 0; j < i; j++)
+                    to_check.append(partition[1]);
+                to_check.append(partition[2]);
+                for (int j = 0; j < i; j++)
+                    to_check.append(partition[3]);
+                to_check.append(s);
+
+                if (oracle.inLanguage(to_check))
+                    return false;
+            }
+        }
+    }
+
+    return true;
 }
