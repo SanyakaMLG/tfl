@@ -1,3 +1,4 @@
+#include <stack>
 #include "LStar.hpp"
 #include "utils.hpp"
 
@@ -48,7 +49,7 @@ std::set<std::set<char>, cmpBySetSize> get_supersets(const std::set<char> &set, 
         }
 
         bool contains_desired_subset = true;
-        for (int element : desired_subset) {
+        for (int element: desired_subset) {
             if (subset.find(element) == subset.end()) {
                 contains_desired_subset = false;
                 break;
@@ -96,7 +97,7 @@ DFA LStar::get_language_in_alphabet(std::string mode, std::set<char> &_alphabet)
     std::vector<std::string> strings;
 
     int i = 0;
-    while(strings.size() < eq_limit) {
+    while (strings.size() < eq_limit) {
         std::vector<std::string> generated = generateStrings(i, _alphabet);
         for (auto gen: generated)
             strings.push_back(gen);
@@ -132,7 +133,7 @@ DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> alphab
     std::vector<std::string> strings;
 
     int i = 0;
-    while(strings.size() < 256) {
+    while (strings.size() < 256) {
         std::vector<std::string> generated = generateStrings(i, alphabet);
         for (auto gen: generated)
             strings.push_back(gen);
@@ -158,6 +159,40 @@ DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> alphab
     }
 
     return counter_dfa;
+}
+
+
+std::string searchFromTo(DFA& dfa, int from, std::set<int>& to){
+    std::set<int> visited;
+    std::stack<std::pair<int, std::string>> stack;
+    stack.emplace(from, "");
+    while(!stack.empty()){
+        auto cur = stack.top();
+        visited.insert(cur.first);
+        stack.pop();
+        if (to.contains(cur.first)){
+            return cur.second;
+        }
+        for (auto child: dfa.transitions_map[cur.first]){
+            if(!visited.contains(child.second)){
+                stack.emplace(child.second, cur.second+child.first);
+            }
+        }
+    }
+}
+std::string getWord(DFA& dfa, int i){
+    std::set<int> set={i};
+    auto middle = searchFromTo(dfa, 0, set);
+    auto finalStates = dfa.getFinalStates();
+    return middle + searchFromTo(dfa, i,finalStates);
+}
+
+
+std::set<std::string> getWords(DFA &dfa) {
+    std::set<std::string> words;
+    for (int i = 0; i < dfa.getSize(); i++) {
+        auto word = getWord(dfa, i);
+    }
 }
 
 std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
@@ -229,6 +264,8 @@ std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
     // suffix_examples from antipref, prefix_examples from antisuf
     // ....
     // получили строки
+    auto suffix_examples = getWords(antipref);
+    auto prefix_examples = getWords(antisuf);
 
     auto counter_prefix = get_counter_DFA(oracle, "prefix", pref_alphabet, limit_pump, partition, suffix_examples);
     auto counter_suffix = get_counter_DFA(oracle, "suffix", suf_alphabet, limit_pump, partition, prefix_examples);
