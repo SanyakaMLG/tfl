@@ -65,7 +65,7 @@ void DFA::printDot() {
                    std::to_string(trans.second) + " [label=\"" + trans.first.second + "\"];\n");
     }
 
-    for (int i = 0; i < count_states; i++) {
+    for (auto i: final_states) {
         std::string shape = final_states.contains(i) ? "doublecircle" : "circle";
         res.append(std::to_string(i) + " [shape=\"" + shape + "\"];\n");
     }

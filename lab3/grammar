@@ -1,2 +1,3 @@
 S -> aS|T
-T -> aTb|e
+T -> aTb|R
+R -> cR|e

@@ -96,16 +96,16 @@ void test(OracleModule& Oracle, std::string& path){
         LStar algo(Oracle, alphabet, partition, 5, 3, 200);
 
         DFA prefix = algo.get_language("prefix");
-        std::cout<<"Prefix Language:\n";
-        prefix.printDot();
+//        std::cout<<"Prefix Language:\n";
+//        prefix.printDot();
 
         DFA inf = algo.get_language("infix");
         std::cout<<"Infix Language:\n";
         inf.printDot();
 
         DFA suf = algo.get_language("suffix");
-        std::cout<<"Suffix Language:\n";
-        suf.printDot();
+//        std::cout<<"Suffix Language:\n";
+//        suf.printDot();
 
         auto counter = algo.get_counter_DFAs(prefix, suf);
 //        std::cout << "Counter prefix:\n";

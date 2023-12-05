@@ -66,6 +66,8 @@ std::set<std::set<char>, cmpBySetSize> get_supersets(const std::set<char> &set, 
 
 
 DFA LStar::get_language(std::string mode) {
+    if (mode == "infix")
+        int skjdgkjsdgjhk=1;
     int idx = mode == "prefix" ? 0 : mode == "suffix" ? 4 : 2;
     int max_dfa_count = partition[idx].length() + reg_limit;
     auto alphabets = get_subsets(alphabet);
@@ -125,8 +127,8 @@ DFA LStar::get_language_in_alphabet(std::string mode, std::set<char> &_alphabet)
     return dfa;
 }
 
-DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> alphabet, int limit_pump,
-                    std::vector<std::string> partition, std::set<std::string> examples) {
+DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> &alphabet, int limit_pump,
+                    std::vector<std::string> partition, std::set<std::string> &examples) {
     CounterTable counter_table(oracle, mode, alphabet, limit_pump, partition, examples);
     DFA counter_dfa = counter_table.convert_to_dfa();
     counter_dfa.deleteTrap();
@@ -192,7 +194,9 @@ std::set<std::string> getWords(DFA &dfa) {
     std::set<std::string> words;
     for (int i = 0; i < dfa.getSize(); i++) {
         auto word = getWord(dfa, i);
+        words.insert(word);
     }
+    return words;
 }
 
 std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
@@ -264,8 +268,8 @@ std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
     // suffix_examples from antipref, prefix_examples from antisuf
     // ....
     // получили строки
-    auto suffix_examples = getWords(antipref);
-    auto prefix_examples = getWords(antisuf);
+    std::set<std::string> suffix_examples = getWords(antipref);
+    std::set<std::string> prefix_examples = getWords(antisuf);
 
     auto counter_prefix = get_counter_DFA(oracle, "prefix", pref_alphabet, limit_pump, partition, suffix_examples);
     auto counter_suffix = get_counter_DFA(oracle, "suffix", suf_alphabet, limit_pump, partition, prefix_examples);
