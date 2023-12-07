@@ -1,10 +1,10 @@
 #include "ObservationTable.h"
 
 bool ObservationTable::check_string(std::string &s) {
-    bool ans;
-    if (mode == "prefix" || mode == "antisuffix")
+    bool ans = true;
+    if (mode == "prefix")
         ans = oracle.inPrefixLanguage(s);
-    else if (mode == "suffix" || mode == "antiprefix")
+    else if (mode == "suffix")
         ans = oracle.inPostfixLanguage(s);
     else
         ans = oracle.inInfixLanguage(s);
@@ -312,6 +312,8 @@ void ObservationTable::print_table() {
     }
 }
 
+
+/*
 bool CounterTable::check_string(std::string &s) {
     if (mode == "prefix") {
         for (auto &ex: examples) {
@@ -346,6 +348,48 @@ bool CounterTable::check_string(std::string &s) {
     }
 
     return true;
+}
+*/
+
+bool CounterTable::check_string(std::string &s) {
+    if (mode == "prefix" and !pref.checkString(s))
+        return false;
+    else if (mode == "suffix" and !suf.checkString(s))
+        return false;
+
+    for (int i = 0; i < 50; i++) {
+        if (mode == "prefix") {
+            std::string generated = suf.getRandomString();
+            for (int pump = 0; pump < limit_pump; pump++) {
+                std::string to_check = s;
+                for (int j = 0; j < pump; j++)
+                    to_check.append(partition[1]);
+                to_check.append(partition[2]);
+                for (int j = 0; j < pump; j++)
+                    to_check.append(partition[3]);
+                to_check.append(generated);
+
+                if (!oracle.inLanguage(to_check))
+                    return true;
+            }
+        } else {
+            std::string generated = pref.getRandomString();
+            for (int pump = 0; pump < limit_pump; pump++) {
+                std::string to_check = generated;
+                for (int j = 0; j < pump; j++)
+                    to_check.append(partition[1]);
+                to_check.append(partition[2]);
+                for (int j = 0; j < pump; j++)
+                    to_check.append(partition[3]);
+                to_check.append(s);
+
+                if (!oracle.inLanguage(to_check))
+                    return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 bool CounterTable::is_closed() {

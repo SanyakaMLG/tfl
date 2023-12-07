@@ -56,6 +56,7 @@ public:
 class CounterTable {
 private:
     std::set<std::string> examples; // C_k
+    DFA pref, suf;
     std::vector<std::string> partition;
     int limit_pump;
     std::string mode;
@@ -75,8 +76,8 @@ public:
     void print_table();
     void make_consistence_and_closure();
     CounterTable(OracleModule oracle, std::string mode, std::set<char> &alphabet,
-                 int limit_pump, std::vector<std::string> partition, std::set<std::string> examples):
-            oracle(oracle), mode(mode), alphabet(alphabet), limit_pump(limit_pump), partition(partition), examples(examples)
+                 int limit_pump, std::vector<std::string> partition, DFA pref, DFA suf):
+            oracle(oracle), mode(mode), alphabet(alphabet), limit_pump(limit_pump), partition(partition), pref(pref), suf(suf)
     {
         if (mode != "prefix" && mode != "suffix")
             throw std::invalid_argument("Mode must be prefix or suffix");
