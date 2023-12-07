@@ -366,7 +366,7 @@ bool CounterTable::check_string(std::string &s) {
     else if (mode == "suffix" && full_checked[1].contains(s))
         return true;
 
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 35; i++) {
         if (mode == "prefix") {
             std::string generated = suf.getRandomString();
             for (int pump = 0; pump < limit_pump; pump++) {
@@ -378,8 +378,10 @@ bool CounterTable::check_string(std::string &s) {
                     to_check.append(partition[3]);
                 to_check.append(generated);
 
-                if (!oracle.inLanguage(to_check))
+                if (!oracle.inLanguage(to_check)) {
+                    full_checked[0].insert(s);
                     return true;
+                }
             }
         } else {
             std::string generated = pref.getRandomString();
@@ -392,8 +394,10 @@ bool CounterTable::check_string(std::string &s) {
                     to_check.append(partition[3]);
                 to_check.append(s);
 
-                if (!oracle.inLanguage(to_check))
+                if (!oracle.inLanguage(to_check)) {
+                    full_checked[1].insert(s);
                     return true;
+                }
             }
         }
     }

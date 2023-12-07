@@ -93,25 +93,21 @@ void test(OracleModule& Oracle, std::string& path){
             belongs(Oracle, word);
        }
 
-        LStar algo(Oracle, alphabet, partition, 3, 3, 80);
+        LStar algo(Oracle, alphabet, partition, 3, 2, 200);
 
         DFA prefix = algo.get_language("prefix");
         std::cout<<"Prefix Language:\n";
         prefix.printDot();
 
-//        DFA inf = algo.get_language("infix");
-//        std::cout<<"Infix Language:\n";
-//        inf.printDot();
+        DFA inf = algo.get_language("infix");
+        std::cout<<"Infix Language:\n";
+        inf.printDot();
 
         DFA suf = algo.get_language("suffix");
         std::cout<<"Suffix Language:\n";
         suf.printDot();
 
         auto counter = algo.get_counter_DFAs(prefix, suf);
-//        std::cout << "Counter prefix:\n";
-//        counter[0].printDot();
-//        std::cout << "Counter suffix:\n";
-//        counter[1].printDot();
 
         if (counter.empty()){
             std::cout<<"Prefix Language:\n";
@@ -123,10 +119,25 @@ void test(OracleModule& Oracle, std::string& path){
             auto invertedCounterSuffix = counter[1].invert();
             auto prefixIntersect = intersect(prefix,invertedCounterPrefix);
             auto suffixIntersect = intersect(suf, invertedCounterSuffix);
-            std::cout<<"Prefix Language:\n";
-            prefixIntersect.printDot();
-            std::cout<<"Suffix Language:\n";
-            suffixIntersect.printDot();
+            prefixIntersect.deleteTrap();
+            suffixIntersect.deleteTrap();
+
+            if (prefixIntersect.getSize() == 0 && algo.check_compatibility(prefix, suffixIntersect)) {
+                std::cout<<"Prefix Language:\n";
+                prefix.printDot();
+                std::cout<<"Suffix Language:\n";
+                suffixIntersect.printDot();
+            } else if (suffixIntersect.getSize() == 0 && algo.check_compatibility(prefixIntersect, suf)) {
+                std::cout<<"Prefix Language:\n";
+                prefixIntersect.printDot();
+                std::cout<<"Suffix Language:\n";
+                suf.printDot();
+            } else {
+                std::cout<<"Prefix Language:\n";
+                prefixIntersect.printDot();
+                std::cout<<"Suffix Language:\n";
+                suffixIntersect.printDot();
+            }
         }
     }
 }

@@ -172,6 +172,10 @@ DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> &alpha
     counter_dfa.deleteTrap();
     std::vector<std::string> strings;
 
+    if (alphabet.size() == 0) {
+        return counter_dfa;
+    }
+
     int i = 0;
     while (strings.size() < 256) {
         std::vector<std::string> generated = generateStrings(i, alphabet);
@@ -318,4 +322,45 @@ std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
     res.push_back(counter_suffix);
 
     return res;
+}
+
+bool LStar::check_compatibility(DFA &prefix, DFA &suffix) {
+    std::set<std::string> checked_prefix, checked_suffix;
+
+    for (int i = 0; i < 20; i++) {
+
+        auto pref = prefix.getRandomString();
+
+        if (checked_prefix.contains(pref))
+            continue;
+        else
+            checked_prefix.insert(pref);
+
+        for (int j = 0; j < 15; j++) {
+
+            auto suf = suffix.getRandomString();
+
+            if (checked_suffix.contains(suf))
+                continue;
+            else
+                checked_suffix.insert(suf);
+
+            for (int pump = 0; pump < limit_pump; pump++) {
+                std::string to_check = pref;
+                for (int k = 0; k < pump; k++)
+                    to_check.append(partition[1]);
+                to_check.append(partition[2]);
+                for (int k = 0; k < pump; k++)
+                    to_check.append(partition[3]);
+                to_check.append(suf);
+                if (!oracle.inLanguage(to_check)) {
+                    return false;
+                }
+            }
+        }
+
+        checked_suffix.clear();
+    }
+
+    return true;
 }
