@@ -166,8 +166,8 @@ DFA get_counter_DFA2(OracleModule oracle, std::string mode, std::set<char> &alph
  */
 
 DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> &alphabet, int limit_pump,
-                    std::vector<std::string> partition, DFA pref, DFA suf) {
-    CounterTable counter_table(oracle, mode, alphabet, limit_pump, partition, pref, suf);
+                    std::vector<std::string> partition, DFA pref, DFA suf, std::vector<std::set<std::string>> full_checked) {
+    CounterTable counter_table(oracle, mode, alphabet, limit_pump, partition, pref, suf, full_checked);
     DFA counter_dfa = counter_table.convert_to_dfa();
     counter_dfa.deleteTrap();
     std::vector<std::string> strings;
@@ -240,12 +240,10 @@ DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> &alpha
 std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
     std::set<std::tuple<std::string, std::string>> counter_examples;
     std::set<std::string> checked_prefix, checked_suffix;
+    std::vector<std::set<std::string>> full_checked(2);
     std::vector<DFA> res;
-    bool flag = false;
 
-    for (int i = 0; i < 35; i++) {
-        if (flag)
-            break;
+    for (int i = 0; i < 60; i++) {
 
         auto pref = prefix.getRandomString();
 
@@ -254,9 +252,7 @@ std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
         else
             checked_prefix.insert(pref);
 
-        for (int j = 0; j < 35; j++) {
-            if (flag)
-                break;
+        for (int j = 0; j < 15; j++) {
 
             auto suf = suffix.getRandomString();
 
@@ -275,8 +271,8 @@ std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
                 to_check.append(suf);
                 if (!oracle.inLanguage(to_check)) {
                     counter_examples.insert(std::make_tuple(pref, suf));
-                    if (counter_examples.size() >= prefix.getSize() + suffix.getSize())
-                        flag = true;
+                    full_checked[0].insert(pref);
+                    full_checked[1].insert(suf);
                     break;
                 }
             }
@@ -286,7 +282,7 @@ std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
     }
 
     // empty return if not enough counter examples
-    if (!flag)
+    if (counter_examples.size() < prefix.getSize() + suffix.getSize())
         return res;
 
     std::set<char> pref_alphabet, suf_alphabet;
@@ -316,8 +312,8 @@ std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
     auto counter_suffix = get_counter_DFA(oracle, "suffix", suf_alphabet, limit_pump, partition, prefix_examples);
 */
 
-    auto counter_prefix = get_counter_DFA(oracle, "prefix", pref_alphabet, limit_pump, partition, prefix, suffix);
-    auto counter_suffix = get_counter_DFA(oracle, "suffix", suf_alphabet, limit_pump, partition, prefix, suffix);
+    auto counter_prefix = get_counter_DFA(oracle, "prefix", pref_alphabet, limit_pump, partition, prefix, suffix, full_checked);
+    auto counter_suffix = get_counter_DFA(oracle, "suffix", suf_alphabet, limit_pump, partition, prefix, suffix, full_checked);
     res.push_back(counter_prefix);
     res.push_back(counter_suffix);
 

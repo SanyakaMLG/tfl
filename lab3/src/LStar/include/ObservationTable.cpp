@@ -352,12 +352,17 @@ bool CounterTable::check_string(std::string &s) {
 */
 
 bool CounterTable::check_string(std::string &s) {
-    if (mode == "prefix" and !pref.checkString(s))
+    if (mode == "prefix" && !pref.checkString(s))
         return false;
-    else if (mode == "suffix" and !suf.checkString(s))
+    else if (mode == "suffix" && !suf.checkString(s))
         return false;
 
-    for (int i = 0; i < 50; i++) {
+    if (mode == "prefix" && full_checked[0].contains(s))
+        return true;
+    else if (mode == "suffix" && full_checked[1].contains(s))
+        return true;
+
+    for (int i = 0; i < 20; i++) {
         if (mode == "prefix") {
             std::string generated = suf.getRandomString();
             for (int pump = 0; pump < limit_pump; pump++) {
