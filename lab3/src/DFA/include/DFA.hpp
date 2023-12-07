@@ -27,6 +27,7 @@ public:
     std::set<char> getAlphabet();
     std::string getRandomString();
     std::set<int> getFinalStates();
+    void renumeration();
 };
 DFA intersect(DFA &dfa1, DFA &DFA2);
 #endif //LAB3_DFA_HPP

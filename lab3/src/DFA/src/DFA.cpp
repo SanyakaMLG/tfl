@@ -141,17 +141,17 @@ std::set<int> DFA::getFinalStates() {
 DFA returnTrap(DFA normDFA) {
     DFA dfa = normDFA;
     dfa.buildTransitionsMap();
-    bool flag = 0;
+    bool flag = false;
     auto alphabet = dfa.getAlphabet();
     for (auto state: dfa.transitions_map) {
         for (char letter: alphabet) {
             if (!state.second.contains(letter)) {
-                flag = 1;
+                flag = true;
                 dfa.addTransition(state.first, letter, TRAP);
             }
         }
     }
-    if (flag > 0) {
+    if (flag) {
         for (char letter: alphabet) {
             dfa.addTransition(TRAP, letter, TRAP);
         }
@@ -164,15 +164,21 @@ DFA returnTrap(DFA normDFA) {
 DFA DFA::invert() {
     DFA dfa = returnTrap(*this);
     DFA invertedDFA(dfa.getAlphabet());
+    std::set<int> states;
     for (auto state: dfa.transitions_map) {
+        states.insert(state.first);
         for (auto to: state.second) {
             invertedDFA.addTransition(state.first, to.first, to.second);
+            states.insert(to.second);
         }
         if (!final_states.contains(state.first)) {
             invertedDFA.final_states.insert(state.first);
         }
     }
+    invertedDFA.setCount(states.size());
     invertedDFA.deleteTrap();
+    invertedDFA.renumeration();
+
     return invertedDFA;
 }
 
@@ -190,6 +196,11 @@ static std::vector<std::vector<int>> mapping(int size1, int size2) {
 
 DFA intersect(DFA &dfa1, DFA &dfa2) {
     std::set<char> intersection;
+    std::cout << "intersect DFAs:\n";
+    dfa1.renumeration();
+    dfa2.renumeration();
+    dfa1.printDot();
+    dfa2.printDot();
     auto alphabet1 = dfa1.getAlphabet();
     auto alphabet2 = dfa2.getAlphabet();
     std::set_intersection(alphabet1.begin(),
@@ -233,4 +244,40 @@ DFA intersect(DFA &dfa1, DFA &dfa2) {
     }
     product.buildTransitionsMap();
     return product;
+}
+
+void DFA::renumeration() {
+    std::set<int> states;
+    for (auto &trans: transitions) {
+        states.insert(trans.first.first);
+        states.insert(trans.second);
+    }
+
+    std::unordered_map<int, int> renum;
+    int cur_state = 0;
+    for (auto state: states) {
+        renum[state] = cur_state++;
+    }
+
+    for (auto &trans: transitions) {
+        trans.first.first = renum[trans.first.first];
+        trans.second = renum[trans.second];
+    }
+
+    std::set<int> tmp_final(final_states);
+    final_states.clear();
+    for (auto &final: tmp_final) {
+        final_states.insert(renum[final]);
+    }
+
+    std::unordered_map<int, std::unordered_map<char, int>> tmp_trans(transitions_map);
+    transitions_map.clear();
+
+    for (auto &trans: tmp_trans) {
+        std::unordered_map<char, int> mp;
+        for (auto &to: trans.second) {
+            mp[to.first] = mp[renum[to.second]];
+        }
+        transitions_map[renum[trans.first]] = mp;
+    }
 }
