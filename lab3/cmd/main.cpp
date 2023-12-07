@@ -117,7 +117,9 @@ void test(OracleModule& Oracle, std::string& path){
             auto prefixIntersect = intersect(prefix,invertedCounterPrefix);
             auto suffixIntersect = intersect(suf, invertedCounterSuffix);
             prefixIntersect.deleteTrap();
+
             suffixIntersect.deleteTrap();
+
 
             if (prefixIntersect.getSize() == 0 && algo.check_compatibility(prefix, suffixIntersect)) {
                 std::cout<<"Prefix Language:\n";

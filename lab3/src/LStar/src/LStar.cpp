@@ -20,12 +20,12 @@ struct cmpBySetSize {
 };
 
 std::set<std::set<char>, cmpBySetSize> get_subsets(std::set<char> &set) {
-    int n = set.size();
+    size_t n = set.size();
     std::vector<char> elements(set.begin(), set.end());
     std::set<std::set<char>, cmpBySetSize> res;
-    for (int i = 1; i < (1 << n); i++) {
+    for (size_t i = 1; i < (1 << n); i++) {
         std::set<char> subset;
-        for (int j = 0; j < n; j++) {
+        for (size_t j = 0; j < n; j++) {
             if (i & (1 << j)) {
                 subset.insert(elements[j]);
             }
@@ -49,7 +49,7 @@ std::set<std::set<char>, cmpBySetSize> get_supersets(const std::set<char> &set, 
         }
 
         bool contains_desired_subset = true;
-        for (int element: desired_subset) {
+        for (auto element: desired_subset) {
             if (subset.find(element) == subset.end()) {
                 contains_desired_subset = false;
                 break;
@@ -66,10 +66,8 @@ std::set<std::set<char>, cmpBySetSize> get_supersets(const std::set<char> &set, 
 
 
 DFA LStar::get_language(std::string mode) {
-    if (mode == "infix")
-        int skjdgkjsdgjhk=1;
     int idx = mode == "prefix" ? 0 : mode == "suffix" ? 4 : 2;
-    int max_dfa_count = partition[idx].length() + reg_limit;
+    size_t max_dfa_count = partition[idx].length() + reg_limit;
     auto alphabets = get_subsets(alphabet);
     std::set<std::set<char>> blocked;
     DFA dfa(alphabet);
@@ -101,13 +99,13 @@ DFA LStar::get_language_in_alphabet(std::string mode, std::set<char> &_alphabet)
     int i = 0;
     while (strings.size() < eq_limit) {
         std::vector<std::string> generated = generateStrings(i, _alphabet);
-        for (auto gen: generated)
+        for (const auto& gen: generated)
             strings.push_back(gen);
         i++;
     }
 
     bool in_dfa, in_oracle;
-    int end;
+    size_t end;
 
     if (_alphabet.size() == 1)
         end = 20;
@@ -172,20 +170,20 @@ DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> &alpha
     counter_dfa.deleteTrap();
     std::vector<std::string> strings;
 
-    if (alphabet.size() == 0) {
+    if (alphabet.empty()) {
         return counter_dfa;
     }
 
     int i = 0;
     while (strings.size() < 256) {
         std::vector<std::string> generated = generateStrings(i, alphabet);
-        for (auto gen: generated)
+        for (const auto& gen: generated)
             strings.push_back(gen);
         i++;
     }
 
     bool in_dfa, in_oracle;
-    int end;
+    size_t end;
 
     if (alphabet.size() == 1)
         end = 5;

@@ -35,7 +35,7 @@ public:
         if (mode != "prefix" && mode != "suffix" && mode != "infix" && mode != "antiprefix" && mode != "antisuffix")
             throw std::invalid_argument("Mode must be prefix, suffix or infix");
 
-        std::string eps = "";
+        std::string eps;
         suffix.push_back(eps);
         prefix[eps].push_back(check_string(eps));
         rows.insert(prefix[eps]);
@@ -83,7 +83,7 @@ public:
         if (mode != "prefix" && mode != "suffix")
             throw std::invalid_argument("Mode must be prefix or suffix");
 
-        std::string eps = "";
+        std::string eps;
         suffix.push_back(eps);
         prefix[eps].push_back(check_string(eps));
         rows.insert(prefix[eps]);

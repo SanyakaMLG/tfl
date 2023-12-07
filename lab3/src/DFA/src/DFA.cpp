@@ -35,6 +35,7 @@ void dfs(int start, std::set<int> &visited, std::unordered_map<int, std::set<int
 }
 
 void DFA::deleteTrap() {
+    this->renumeration();
     std::set<int> visited1, visited2;
     std::unordered_map<int, std::set<int>> back_trans;
     std::unordered_map<int, std::set<int>> tmp_trans;

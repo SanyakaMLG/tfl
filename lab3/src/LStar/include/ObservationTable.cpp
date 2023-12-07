@@ -29,7 +29,7 @@ bool ObservationTable::check_string(std::string &s) {
         }
     } else if (mode == "suffix") {
         for (int i = 0; i < limit_pump; i++) {
-            std::string pumped = "";
+            std::string pumped;
             pumped.reserve(s.size()+ partition[1].size()*i + partition[3].size()*i + partition[2].size());
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
@@ -45,7 +45,7 @@ bool ObservationTable::check_string(std::string &s) {
         }
     } else if (mode == "infix") {
         for (int i = 0; i < limit_pump; i++) {
-            std::string pumped = "";
+            std::string pumped;
             pumped.reserve(s.size()+ partition[1].size()*i + partition[3].size()*i);
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
@@ -60,7 +60,7 @@ bool ObservationTable::check_string(std::string &s) {
         }
     } else if (mode == "antiprefix") {
         for (int i = 0; i < limit_pump; i++) {
-            std::string pumped = "";
+            std::string pumped;
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
             }
@@ -250,8 +250,8 @@ void ObservationTable::add_counterexample(std::string s) {
             continue;
         if (!prefix.contains(sub) && !extended_prefix.contains(sub)) {
             std::vector<bool> vec;
-            for (auto suf: suffix) {
-                std::string str = sub + suf;
+            for (auto _suf: suffix) {
+                std::string str = sub + _suf;
                 vec.push_back(check_string(str));
             }
             prefix[sub] = vec;
@@ -271,8 +271,8 @@ void ObservationTable::add_counterexample(std::string s) {
             std::string str = p.first + c;
             if (!prefix.contains(str) && !extended_prefix.contains(str)) {
                 std::vector<bool> vec;
-                for (auto suf: suffix) {
-                    std::string with_suf = str + suf;
+                for (const auto& _suf: suffix) {
+                    std::string with_suf = str + _suf;
                     vec.push_back(check_string(with_suf));
                 }
                 extended_prefix[str] = vec;
@@ -286,16 +286,16 @@ void ObservationTable::add_counterexample(std::string s) {
 
 void ObservationTable::print_table() {
     printf("%10s", "");
-    for (auto suf: suffix) {
-        if (suf == "")
+    for (const auto& suf: suffix) {
+        if (suf.empty())
             printf("%10s", "eps");
         else
             printf("%10s", suf.c_str());
     }
     std::cout << std::endl;
 
-    for (auto pref: prefix) {
-        if (pref.first == "")
+    for (const auto& pref: prefix) {
+        if (pref.first.empty())
             printf("%10s", "eps");
         else
             printf("%10s", pref.first.c_str());
@@ -307,7 +307,7 @@ void ObservationTable::print_table() {
 
     std::cout << std::endl;
 
-    for (auto pref: extended_prefix) {
+    for (const auto& pref: extended_prefix) {
         printf("%10s", pref.first.c_str());
         for (auto el: pref.second) {
             printf("%10d", el ? 1 : 0);
@@ -422,8 +422,8 @@ void CounterTable::make_closure() {
             for (auto c: alphabet) {
                 std::string str = p.first + c;
                 std::vector<bool> vec;
-                for (auto suf: suffix) {
-                    std::string with_suf = str + suf;
+                for (const auto& _suf: suffix) {
+                    std::string with_suf = str + _suf;
                     vec.push_back(check_string(with_suf));
                 }
                 extended_prefix[str] = vec;
@@ -434,7 +434,7 @@ void CounterTable::make_closure() {
     }
 }
 
-bool CounterTable::is_consistent(std::string &pref1, std::string &pref2, char &suf) {
+bool CounterTable::is_consistent(std::string &pref1, std::string &pref2, char &_suf) {
     for (auto it = prefix.begin(); it != prefix.end(); it++) {
         for (auto it_2 = std::next(it); it_2 != prefix.end(); it_2++) {
             if (std::equal(it->second.begin(), it->second.end(), it_2->second.begin(), it_2->second.end())) {
@@ -453,7 +453,7 @@ bool CounterTable::is_consistent(std::string &pref1, std::string &pref2, char &s
                         vec2 = extended_prefix[it_2->first + c];
 
                     if (!std::equal(vec1.begin(), vec1.end(), vec2.begin(), vec2.end())) {
-                        suf = c;
+                        _suf = c;
                         return false;
                     }
                 }
@@ -463,22 +463,22 @@ bool CounterTable::is_consistent(std::string &pref1, std::string &pref2, char &s
     return true;
 }
 
-void CounterTable::make_consistence(std::string &pref1, std::string &pref2, char &suf) {
+void CounterTable::make_consistence(std::string &pref1, std::string &pref2, char &_suf) {
     std::vector<bool> p1, p2;
     std::string full_suf;
-    if (prefix.contains(pref1 + suf))
-        p1 = prefix[pref1 + suf];
+    if (prefix.contains(pref1 + _suf))
+        p1 = prefix[pref1 + _suf];
     else
-        p1 = extended_prefix[pref1 + suf];
+        p1 = extended_prefix[pref1 + _suf];
 
-    if (prefix.contains(pref2 + suf))
-        p2 = prefix[pref2 + suf];
+    if (prefix.contains(pref2 + _suf))
+        p2 = prefix[pref2 + _suf];
     else
-        p2 = extended_prefix[pref2 + suf];
+        p2 = extended_prefix[pref2 + _suf];
 
     for (int i = 0; i < p1.size(); i++) {
         if (p1[i] != p2[i]) {
-            full_suf = suf + suffix[i];
+            full_suf = _suf + suffix[i];
         }
     }
 
@@ -500,13 +500,16 @@ void CounterTable::make_consistence(std::string &pref1, std::string &pref2, char
 }
 
 void CounterTable::make_consistence_and_closure() {
-    char suf = '-';
+    char _suf = '-';
     std::string pref1, pref2;
-    while (!is_consistent(pref1, pref2, suf) || !is_closed()) {
+    while (!is_consistent(pref1, pref2, _suf) || !is_closed()) {
         if (!is_closed())
             make_closure();
-        if (suf != '-')
-            make_consistence(pref1, pref2, suf);
+        if (_suf != '-') {
+            make_consistence(pref1, pref2, _suf);
+            _suf = '-';
+        }
+
     }
 }
 
@@ -531,20 +534,20 @@ DFA CounterTable::convert_to_dfa() {
     }
 
     for (auto state: states) {
-        std::string pref = mp1[state];
+        std::string _pref = mp1[state];
         for (auto c: alphabet) {
             std::string c_str = std::string(1, c);
-            if (prefix.contains(pref + c_str)) {
+            if (prefix.contains(_pref + c_str)) {
                 dfa.addTransition(
                         mp[state],
                         c,
-                        mp[prefix[pref + c_str]]
+                        mp[prefix[_pref + c_str]]
                 );
-            } else if (extended_prefix.contains(pref + c_str)) {
+            } else if (extended_prefix.contains(_pref + c_str)) {
                 dfa.addTransition(
                         mp[state],
                         c,
-                        mp[extended_prefix[pref + c_str]]
+                        mp[extended_prefix[_pref + c_str]]
                 );
             }
         }
@@ -562,8 +565,8 @@ void CounterTable::add_counterexample(std::string s) {
             continue;
         if (!prefix.contains(sub) && !extended_prefix.contains(sub)) {
             std::vector<bool> vec;
-            for (auto suf: suffix) {
-                std::string str = sub + suf;
+            for (const auto& _suf: suffix) {
+                std::string str = sub + _suf;
                 vec.push_back(check_string(str));
             }
             prefix[sub] = vec;
@@ -583,8 +586,8 @@ void CounterTable::add_counterexample(std::string s) {
             std::string str = p.first + c;
             if (!prefix.contains(str) && !extended_prefix.contains(str)) {
                 std::vector<bool> vec;
-                for (auto suf: suffix) {
-                    std::string with_suf = str + suf;
+                for (const auto& _suf: suffix) {
+                    std::string with_suf = str + _suf;
                     vec.push_back(check_string(with_suf));
                 }
                 extended_prefix[str] = vec;
@@ -598,20 +601,20 @@ void CounterTable::add_counterexample(std::string s) {
 
 void CounterTable::print_table() {
     printf("%10s", "");
-    for (auto suf: suffix) {
-        if (suf == "")
+    for (const auto& _suf: suffix) {
+        if (_suf.empty())
             printf("%10s", "eps");
         else
-            printf("%10s", suf.c_str());
+            printf("%10s", _suf.c_str());
     }
     std::cout << std::endl;
 
-    for (auto pref: prefix) {
-        if (pref.first == "")
+    for (const auto& _pref: prefix) {
+        if (_pref.first.empty())
             printf("%10s", "eps");
         else
-            printf("%10s", pref.first.c_str());
-        for (auto el: pref.second) {
+            printf("%10s", _pref.first.c_str());
+        for (auto el: _pref.second) {
             printf("%10d", el ? 1 : 0);
         }
         std::cout << std::endl;
@@ -619,9 +622,9 @@ void CounterTable::print_table() {
 
     std::cout << std::endl;
 
-    for (auto pref: extended_prefix) {
-        printf("%10s", pref.first.c_str());
-        for (auto el: pref.second) {
+    for (const auto& _pref: extended_prefix) {
+        printf("%10s", _pref.first.c_str());
+        for (auto el: _pref.second) {
             printf("%10d", el ? 1 : 0);
         }
         std::cout << std::endl;
