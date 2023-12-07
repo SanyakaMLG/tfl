@@ -93,7 +93,7 @@ void test(OracleModule& Oracle, std::string& path){
             belongs(Oracle, word);
        }
 
-        LStar algo(Oracle, alphabet, partition, 5, 3, 200);
+        LStar algo(Oracle, alphabet, partition, 3, 3, 80);
 
         DFA prefix = algo.get_language("prefix");
         std::cout<<"Prefix Language:\n";
