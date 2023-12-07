@@ -140,22 +140,22 @@ std::set<int> DFA::getFinalStates() {
 
 DFA returnTrap(DFA normDFA) {
     DFA dfa = normDFA;
-    dfa.buildTransitionsMap();
-    bool flag = 0;
+    bool flag = false;
     auto alphabet = dfa.getAlphabet();
     for (auto state: dfa.transitions_map) {
         for (char letter: alphabet) {
             if (!state.second.contains(letter)) {
-                flag = 1;
+                flag = true;
                 dfa.addTransition(state.first, letter, TRAP);
             }
         }
     }
-    if (flag > 0) {
+    if (flag) {
         for (char letter: alphabet) {
             dfa.addTransition(TRAP, letter, TRAP);
         }
         dfa.addFinalState(TRAP);
+        dfa.setCount(dfa.getSize()+1);
     }
     dfa.buildTransitionsMap();
     return dfa;
@@ -164,14 +164,18 @@ DFA returnTrap(DFA normDFA) {
 DFA DFA::invert() {
     DFA dfa = returnTrap(*this);
     DFA invertedDFA(dfa.getAlphabet());
+    invertedDFA.setCount(dfa.getSize());
+
     for (auto state: dfa.transitions_map) {
         for (auto to: state.second) {
             invertedDFA.addTransition(state.first, to.first, to.second);
         }
-        if (!final_states.contains(state.first)) {
-            invertedDFA.final_states.insert(state.first);
+        std::cout<<state.first<<'\n';
+        if (!this->final_states.contains(state.first)) {
+            invertedDFA.addFinalState(state.first);
         }
     }
+    invertedDFA.printDot();
     invertedDFA.deleteTrap();
     return invertedDFA;
 }

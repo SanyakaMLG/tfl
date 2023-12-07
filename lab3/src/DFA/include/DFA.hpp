@@ -8,10 +8,11 @@
 class DFA {
 private:
     int count_states{};
-    std::vector<std::pair<std::pair<int, char>, int>> transitions;
-    std::set<int> final_states;
+
     std::set<char> alphabet;
 public:
+    std::set<int> final_states;
+    std::vector<std::pair<std::pair<int, char>, int>> transitions;
     std::unordered_map<int, std::unordered_map<char, int>> transitions_map;
     DFA(std::set<char> alphabet): alphabet(alphabet) {}
     bool checkString(std::string&);
