@@ -23,6 +23,7 @@ public:
 
     DFA get_language(std::string mode);
     std::vector<DFA> get_counter_DFAs(DFA&, DFA&);
+    bool check_compatibility(DFA&, DFA&);
 };
 
 #endif //LAB3_LSTAR_HPP

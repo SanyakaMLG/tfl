@@ -18,31 +18,47 @@ void DFA::addTransition(int from, char c, int to) {
     transitions_map[from][c] = to;
 }
 
-void dfs(int start, std::set<int> &visited, std::unordered_map<int, std::set<int>> &back_trans) {
+void invert_dfs(int start, std::set<int> &visited, std::unordered_map<int, std::set<int>> &back_trans) {
     visited.insert(start);
     for (auto state: back_trans[start]) {
         if (!visited.contains(state))
-            dfs(state, visited, back_trans);
+            invert_dfs(state, visited, back_trans);
+    }
+}
+
+void dfs(int start, std::set<int> &visited, std::unordered_map<int, std::set<int>> &trans) {
+    visited.insert(start);
+    for (auto state: trans[start]) {
+        if (!visited.contains(state))
+            dfs(state, visited, trans);
     }
 }
 
 void DFA::deleteTrap() {
-    std::set<int> visited;
+    std::set<int> visited1, visited2;
     std::unordered_map<int, std::set<int>> back_trans;
+    std::unordered_map<int, std::set<int>> tmp_trans;
 
     for (auto trans: transitions) {
         back_trans[trans.second].insert(trans.first.first);
+        tmp_trans[trans.first.first].insert(trans.second);
     }
 
+    dfs(0, visited2, tmp_trans);
+
     for (auto final: final_states) {
-        if (!visited.contains(final))
-            dfs(final, visited, back_trans);
+        if (!visited1.contains(final))
+            invert_dfs(final, visited1, back_trans);
     }
 
     std::set<int> old_states;
     std::set<int> to_delete;
     for (int i = 0; i < count_states; i++)
         old_states.insert(i);
+
+    std::set<int> visited;
+    std::set_intersection(visited1.begin(), visited1.end(), visited2.begin(), visited2.end(),
+                          std::inserter(visited, visited.begin()));
 
     std::set_difference(old_states.begin(), old_states.end(), visited.begin(), visited.end(),
                         std::inserter(to_delete, to_delete.begin()));
@@ -51,6 +67,9 @@ void DFA::deleteTrap() {
 
     std::erase_if(transitions, [&](std::pair<std::pair<int, char>, int> x) -> bool {
         return to_delete.contains(x.first.first) || to_delete.contains(x.second);
+    });
+    std::erase_if(final_states, [&](int x) -> bool {
+        return to_delete.contains(x);
     });
 
     transitions_map.clear();
@@ -120,7 +139,7 @@ std::string DFA::getRandomString() {
     int cur_state = 0;
     std::string res;
     while (true) {
-        if (transitions_map[cur_state].empty() || final_states.contains(cur_state) && std::rand() % 100 >= 80)
+        if (transitions_map[cur_state].empty() || final_states.contains(cur_state) && std::rand() % 100 >= 70)
             break;
 
         auto pair = randomChooseFromMap(transitions_map[cur_state]);
@@ -196,11 +215,8 @@ static std::vector<std::vector<int>> mapping(int size1, int size2) {
 
 DFA intersect(DFA &dfa1, DFA &dfa2) {
     std::set<char> intersection;
-    std::cout << "intersect DFAs:\n";
     dfa1.renumeration();
     dfa2.renumeration();
-    dfa1.printDot();
-    dfa2.printDot();
     auto alphabet1 = dfa1.getAlphabet();
     auto alphabet2 = dfa2.getAlphabet();
     std::set_intersection(alphabet1.begin(),
@@ -228,9 +244,13 @@ DFA intersect(DFA &dfa1, DFA &dfa2) {
             }
         }
     }
+
+    std::set<int> states;
     auto map = mapping(dfa1.getSize(), dfa2.getSize());
     for (const auto &item: intersection_map) {
         for (auto by: item.second) {
+            states.insert(map[item.first.first][item.first.second]);
+            states.insert(map[by.second.first][by.second.second]);
             product.addTransition(map[item.first.first][item.first.second],
                                   by.first, map[by.second.first][by.second.second]);
         }
@@ -240,8 +260,10 @@ DFA intersect(DFA &dfa1, DFA &dfa2) {
     for (int states1: final_states1) {
         for (int states2: final_states2) {
             product.addFinalState(map[states1][states2]);
+            states.insert(map[states1][states2]);
         }
     }
+    product.setCount(states.size());
     product.buildTransitionsMap();
     return product;
 }
