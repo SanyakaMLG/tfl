@@ -96,16 +96,12 @@ void test(OracleModule& Oracle, std::string& path){
         LStar algo(Oracle, alphabet, partition, 3, 2, 200);
 
         DFA prefix = algo.get_language("prefix");
-        std::cout<<"Prefix Language:\n";
-        prefix.printDot();
 
         DFA inf = algo.get_language("infix");
         std::cout<<"Infix Language:\n";
         inf.printDot();
 
         DFA suf = algo.get_language("suffix");
-        std::cout<<"Suffix Language:\n";
-        suf.printDot();
 
         auto counter = algo.get_counter_DFAs(prefix, suf);
 
@@ -115,6 +111,7 @@ void test(OracleModule& Oracle, std::string& path){
             std::cout<<"Suffix Language:\n";
             suf.printDot();
         } else {
+            std::cout<<"Counter Examples found\n";
             auto invertedCounterPrefix = counter[0].invert();
             auto invertedCounterSuffix = counter[1].invert();
             auto prefixIntersect = intersect(prefix,invertedCounterPrefix);
@@ -146,8 +143,9 @@ void test(OracleModule& Oracle, std::string& path){
 int main(int argc, char* argv[]) {
     ProgramOptions::parse(argc, argv);
     std::string grammarPath("grammar");
-    std::cout<<"making oracles\n";
+    std::cout<<"making Oracles...\n";
     auto Oracle = OracleModule(grammarPath);
+    std::cout<<"Oracles done!\n";
     if (ProgramOptions::log()) {
         printGrammars(Oracle);
     }
@@ -156,16 +154,5 @@ int main(int argc, char* argv[]) {
         std::string path(ProgramOptions::str());
         test(Oracle, path);
     }
-//
-//    ObservationTable table(Oracle, "infix", a_alph, 5, partition);
-//    table.print_table();
-//
-//    table.convert_to_dfa().printDot();
-//    table.add_counterexample("aa");
-//    table.print_table();
-//    table.add_counterexample("baa");
-//    table.print_table();
-//
-//    table.convert_to_dfa().printDot();
     return 0;
 }
