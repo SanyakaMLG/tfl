@@ -4,6 +4,7 @@
 #include <map>
 
 #define TRAP 1000
+
 void DFA::addFinalState(int state) {
     final_states.insert(state);
 }
@@ -140,36 +141,46 @@ std::set<int> DFA::getFinalStates() {
 DFA returnTrap(DFA normDFA) {
     DFA dfa = normDFA;
     dfa.buildTransitionsMap();
+    bool flag = 0;
     auto alphabet = dfa.getAlphabet();
-    for(auto state: dfa.transitions_map){
-        for(char letter: alphabet){
-            if (!state.second.contains(letter)){
+    for (auto state: dfa.transitions_map) {
+        for (char letter: alphabet) {
+            if (!state.second.contains(letter)) {
+                flag = 1;
                 dfa.addTransition(state.first, letter, TRAP);
             }
         }
     }
+    if (flag > 0) {
+        for (char letter: alphabet) {
+            dfa.addTransition(TRAP, letter, TRAP);
+        }
+        dfa.addFinalState(TRAP);
+    }
     dfa.buildTransitionsMap();
     return dfa;
 }
-DFA DFA::invert(){
+
+DFA DFA::invert() {
     DFA dfa = returnTrap(*this);
     DFA invertedDFA(dfa.getAlphabet());
-    for(auto state: dfa.transitions_map){
+    for (auto state: dfa.transitions_map) {
         for (auto to: state.second) {
             invertedDFA.addTransition(state.first, to.first, to.second);
         }
-        if(state.first > 0 && !final_states.contains(state.first)){
-               invertedDFA.final_states.insert(state.first);
+        if (!final_states.contains(state.first)) {
+            invertedDFA.final_states.insert(state.first);
         }
     }
     invertedDFA.deleteTrap();
     return invertedDFA;
 }
-static std::vector<std::vector<int>> mapping(int size1, int size2){
+
+static std::vector<std::vector<int>> mapping(int size1, int size2) {
     std::vector<std::vector<int>> ans(size1, std::vector<int>(size2, 0));
     int k = 0;
-    for (int i = 0; i < size1;++i){
-        for(int j = 0; j < size2; ++j){
+    for (int i = 0; i < size1; ++i) {
+        for (int j = 0; j < size2; ++j) {
             ans[i][j] = k++;
         }
     }
@@ -187,37 +198,37 @@ DFA intersect(DFA &dfa1, DFA &dfa2) {
                           alphabet2.end(),
                           std::inserter(intersection, intersection.begin()));
     DFA product = DFA(intersection);
-    std::map<std::pair<int,int>, std::map<char, std::pair<int, int>>> intersection_map;
+    std::map<std::pair<int, int>, std::map<char, std::pair<int, int>>> intersection_map;
     dfa1.buildTransitionsMap();
     dfa2.buildTransitionsMap();
-    for(int i = 0; i <dfa1.getSize(); ++i){
-        for(int j = 0; j <dfa2.getSize(); ++j){
+    for (int i = 0; i < dfa1.getSize(); ++i) {
+        for (int j = 0; j < dfa2.getSize(); ++j) {
             auto state1 = dfa1.transitions_map[i];
             auto state2 = dfa2.transitions_map[j];
-            for(auto item: state1){
-                if(state2.contains(item.first)){
-                    intersection_map[{i,j}][item.first] = {item.second, state2[item.first]};
+            for (auto item: state1) {
+                if (state2.contains(item.first)) {
+                    intersection_map[{i, j}][item.first] = {item.second, state2[item.first]};
                 }
             }
-            for(auto item: state2){
-                if(state1.contains(item.first)){
-                    intersection_map[{i,j}][item.first] = {state1[item.first], item.second};
+            for (auto item: state2) {
+                if (state1.contains(item.first)) {
+                    intersection_map[{i, j}][item.first] = {state1[item.first], item.second};
                 }
             }
         }
     }
     auto map = mapping(dfa1.getSize(), dfa2.getSize());
-    for(const auto& item: intersection_map){
-        for (auto by:item.second){
+    for (const auto &item: intersection_map) {
+        for (auto by: item.second) {
             product.addTransition(map[item.first.first][item.first.second],
                                   by.first, map[by.second.first][by.second.second]);
         }
     }
     auto final_states1 = dfa1.getFinalStates();
     auto final_states2 = dfa2.getFinalStates();
-    for(int states1: final_states1){
-        for(int states2: final_states2){
-                product.addFinalState(map[states1][states2]);
+    for (int states1: final_states1) {
+        for (int states2: final_states2) {
+            product.addFinalState(map[states1][states2]);
         }
     }
     product.buildTransitionsMap();

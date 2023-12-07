@@ -1,7 +1,7 @@
 #include "ObservationTable.h"
 
 bool ObservationTable::check_string(std::string &s) {
-    bool ans = true;
+    bool ans;
     if (mode == "prefix")
         ans = oracle.inPrefixLanguage(s);
     else if (mode == "suffix")
@@ -15,6 +15,7 @@ bool ObservationTable::check_string(std::string &s) {
     if (mode == "prefix") {
         for (int i = 0; i < limit_pump; i++) {
             std::string pumped = s;
+            pumped.reserve(s.size()+ partition[1].size()*i + partition[3].size()*i + partition[2].size());
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
             }
@@ -29,6 +30,7 @@ bool ObservationTable::check_string(std::string &s) {
     } else if (mode == "suffix") {
         for (int i = 0; i < limit_pump; i++) {
             std::string pumped = "";
+            pumped.reserve(s.size()+ partition[1].size()*i + partition[3].size()*i + partition[2].size());
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
             }
@@ -44,6 +46,7 @@ bool ObservationTable::check_string(std::string &s) {
     } else if (mode == "infix") {
         for (int i = 0; i < limit_pump; i++) {
             std::string pumped = "";
+            pumped.reserve(s.size()+ partition[1].size()*i + partition[3].size()*i);
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
             }
@@ -73,6 +76,7 @@ bool ObservationTable::check_string(std::string &s) {
     } else {
         for (int i = 0; i < limit_pump; i++) {
             std::string pumped = s;
+            pumped.reserve(s.size()+ partition[1].size()*i + partition[3].size()*i + partition[2].size());
             for (int j = 0; j < i; j++) {
                 pumped.append(partition[1]);
             }
