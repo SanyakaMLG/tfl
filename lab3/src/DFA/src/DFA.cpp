@@ -234,12 +234,22 @@ DFA intersect(DFA &dfa1, DFA &dfa2) {
             auto state2 = dfa2.transitions_map[j];
             for (auto item: state1) {
                 if (state2.contains(item.first)) {
-                    intersection_map[{i, j}][item.first] = {item.second, state2[item.first]};
+                    if (dfa1.final_states.contains(item.second) &&
+                        dfa2.final_states.contains(state2[item.first]) ||
+                        !dfa1.final_states.contains(item.second) &&
+                        !dfa2.final_states.contains(state2[item.first])) {
+                        intersection_map[{i, j}][item.first] = {item.second, state2[item.first]};
+                    }
                 }
             }
             for (auto item: state2) {
                 if (state1.contains(item.first)) {
-                    intersection_map[{i, j}][item.first] = {state1[item.first], item.second};
+                    if (dfa2.final_states.contains(item.second) &&
+                        dfa1.final_states.contains(state1[item.first]) ||
+                        !dfa2.final_states.contains(item.second) &&
+                        !dfa1.final_states.contains(state1[item.first])) {
+                        intersection_map[{i, j}][item.first] = {state1[item.first], item.second};
+                    }
                 }
             }
         }
