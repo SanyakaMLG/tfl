@@ -125,44 +125,6 @@ DFA LStar::get_language_in_alphabet(std::string mode, std::set<char> &_alphabet)
     return dfa;
 }
 
-/*
-DFA get_counter_DFA2(OracleModule oracle, std::string mode, std::set<char> &alphabet, int limit_pump,
-                    std::vector<std::string> partition, std::set<std::string> &examples) {
-    CounterTable counter_table(oracle, mode, alphabet, limit_pump, partition, examples);
-    DFA counter_dfa = counter_table.convert_to_dfa();
-    counter_dfa.deleteTrap();
-    std::vector<std::string> strings;
-
-    int i = 0;
-    while (strings.size() < 256) {
-        std::vector<std::string> generated = generateStrings(i, alphabet);
-        for (auto gen: generated)
-            strings.push_back(gen);
-        i++;
-    }
-
-    bool in_dfa, in_oracle;
-    int end;
-
-    if (alphabet.size() == 1)
-        end = 20;
-    else
-        end = strings.size();
-
-    for (i = 0; i < end; i++) {
-        in_dfa = counter_dfa.checkString(strings[i]);
-        in_oracle = counter_table.check_string(strings[i]);
-        if (in_oracle && !in_dfa || in_dfa && !in_oracle) {
-            counter_table.add_counterexample(strings[i]);
-            counter_dfa = counter_table.convert_to_dfa();
-            counter_dfa.deleteTrap();
-        }
-    }
-
-    return counter_dfa;
-}
- */
-
 DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> &alphabet, int limit_pump,
                     std::vector<std::string> partition, DFA pref, DFA suf, std::vector<std::set<std::string>> full_checked) {
     CounterTable counter_table(oracle, mode, alphabet, limit_pump, partition, pref, suf, full_checked);
@@ -202,42 +164,6 @@ DFA get_counter_DFA(OracleModule oracle, std::string mode, std::set<char> &alpha
 
     return counter_dfa;
 }
-
-
-//std::string searchFromTo(DFA& dfa, int from, std::set<int>& to){
-//    std::set<int> visited;
-//    std::stack<std::pair<int, std::string>> stack;
-//    stack.emplace(from, "");
-//    while(!stack.empty()){
-//        auto cur = stack.top();
-//        visited.insert(cur.first);
-//        stack.pop();
-//        if (to.contains(cur.first)){
-//            return cur.second;
-//        }
-//        for (auto child: dfa.transitions_map[cur.first]){
-//            if(!visited.contains(child.second)){
-//                stack.emplace(child.second, cur.second+child.first);
-//            }
-//        }
-//    }
-//}
-//std::string getWord(DFA& dfa, int i){
-//    std::set<int> set={i};
-//    auto middle = searchFromTo(dfa, 0, set);
-//    auto finalStates = dfa.getFinalStates();
-//    return middle + searchFromTo(dfa, i,finalStates);
-//}
-//
-//
-//std::set<std::string> getWords(DFA &dfa) {
-//    std::set<std::string> words;
-//    for (int i = 0; i < dfa.getSize(); i++) {
-//        auto word = getWord(dfa, i);
-//        words.insert(word);
-//    }
-//    return words;
-//}
 
 std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
     std::set<std::tuple<std::string, std::string>> counter_examples;
@@ -295,24 +221,6 @@ std::vector<DFA> LStar::get_counter_DFAs(DFA &prefix, DFA &suffix) {
         for (auto c: std::get<1>(ex))
             suf_alphabet.insert(c);
     }
-/*
-    // нужно ли строить эти ДКА в таких алфавитах??
-    auto antipref = get_language_in_alphabet("antiprefix", pref_alphabet);
-    auto antisuf = get_language_in_alphabet("antisuffix", suf_alphabet);
-
-    antipref = intersect(antipref, suffix);
-    antisuf = intersect(antisuf, prefix);
-
-    // нужно получить строки ck из автоматов antipref и antisuf
-    // suffix_examples from antipref, prefix_examples from antisuf
-    // ....
-    // получили строки
-    std::set<std::string> suffix_examples = getWords(antipref);
-    std::set<std::string> prefix_examples = getWords(antisuf);
-
-    auto counter_prefix = get_counter_DFA(oracle, "prefix", pref_alphabet, limit_pump, partition, suffix_examples);
-    auto counter_suffix = get_counter_DFA(oracle, "suffix", suf_alphabet, limit_pump, partition, prefix_examples);
-*/
 
     auto counter_prefix = get_counter_DFA(oracle, "prefix", pref_alphabet, limit_pump, partition, prefix, suffix, full_checked);
     auto counter_suffix = get_counter_DFA(oracle, "suffix", suf_alphabet, limit_pump, partition, prefix, suffix, full_checked);

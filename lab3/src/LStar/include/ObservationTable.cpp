@@ -316,45 +316,6 @@ void ObservationTable::print_table() {
     }
 }
 
-
-/*
-bool CounterTable::check_string(std::string &s) {
-    if (mode == "prefix") {
-        for (auto &ex: examples) {
-            for (int i = 0; i < limit_pump; i++) {
-                std::string to_check = s;
-                for (int j = 0; j < i; j++)
-                    to_check.append(partition[1]);
-                to_check.append(partition[2]);
-                for (int j = 0; j < i; j++)
-                    to_check.append(partition[3]);
-                to_check.append(ex);
-
-                if (oracle.inLanguage(to_check))
-                    return false;
-            }
-        }
-    } else {
-        for (auto &ex: examples) {
-            for (int i = 0; i < limit_pump; i++) {
-                std::string to_check = ex;
-                for (int j = 0; j < i; j++)
-                    to_check.append(partition[1]);
-                to_check.append(partition[2]);
-                for (int j = 0; j < i; j++)
-                    to_check.append(partition[3]);
-                to_check.append(s);
-
-                if (oracle.inLanguage(to_check))
-                    return false;
-            }
-        }
-    }
-
-    return true;
-}
-*/
-
 bool CounterTable::check_string(std::string &s) {
     if (mode == "prefix" && !pref.checkString(s))
         return false;
