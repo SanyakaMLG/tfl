@@ -193,8 +193,10 @@ void ObservationTable::make_consistence_and_closure() {
     while (!is_consistent(pref1, pref2, suf) || !is_closed()) {
         if (!is_closed())
             make_closure();
-        if (suf != '-')
+        if (suf != '-') {
             make_consistence(pref1, pref2, suf);
+            suf = '-';
+        }
     }
 }
 
