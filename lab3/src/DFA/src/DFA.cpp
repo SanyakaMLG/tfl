@@ -266,6 +266,9 @@ DFA intersect(DFA &dfa1, DFA &dfa2) {
                                   by.first, map[by.second.first][by.second.second]);
         }
     }
+    if(!states.contains(0)){
+        return {intersection};
+    }
     auto final_states1 = dfa1.getFinalStates();
     auto final_states2 = dfa2.getFinalStates();
     for (int states1: final_states1) {
