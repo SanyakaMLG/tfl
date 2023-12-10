@@ -1,2 +1,3 @@
-S -> aS|Sc|T
-T -> aTb|e
+S -> bWb|T|cS
+W -> aWa|T
+T -> c

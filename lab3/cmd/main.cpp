@@ -103,9 +103,17 @@ void test(OracleModule& Oracle, std::string& path){
 
         DFA suf = algo.get_language("suffix");
 
+        std::cout << "Languages before checking compatibility:\n";
+        std::cout<<"Prefix Language:\n";
+        prefix.printDot();
+        std::cout<<"Suffix Language:\n";
+        suf.printDot();
+        std::cout << "\n\n\n";
+
         auto counter = algo.get_counter_DFAs(prefix, suf);
 
         if (counter.empty()){
+            std::cout << "Counter Examples not found\n";
             std::cout<<"Prefix Language:\n";
             prefix.printDot();
             std::cout<<"Suffix Language:\n";

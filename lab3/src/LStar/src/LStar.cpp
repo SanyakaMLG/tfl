@@ -78,11 +78,11 @@ DFA LStar::get_language(std::string mode) {
         if (!blocked.contains(alph))
             dfa = get_language_in_alphabet(mode, alph);
 
-        if (dfa.getSize() > max_dfa_count || dfa.getSize() == 0) {
+        if (dfa.getSize() > max_dfa_count) {
             auto to_block = get_supersets(alphabet, alph);
             for (auto el: to_block)
                 blocked.insert(el);
-        } else {
+        } else if (dfa.getSize() != 0) {
             last_reg = dfa;
         }
     }
