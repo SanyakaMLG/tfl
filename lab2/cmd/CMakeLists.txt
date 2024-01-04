@@ -1,4 +1,4 @@
-set(PROJECT_NAME "lab2")
+set(PROJECT_NAME "lab")
 
 project(${PROJECT_NAME})
 add_executable(lab2 main.cpp)
